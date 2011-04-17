@@ -1,3 +1,6 @@
+#ifndef PANELWINDOW_H
+#define PANELWINDOW_H
+
 #include <QtGui/QWidget>
 
 class PanelWindow: public QWidget
@@ -7,7 +10,24 @@ public:
 	PanelWindow();
 	~PanelWindow();
 
-	void setScreen(int screen);
+	enum Side
+	{
+		Top,
+		Bottom,
+		Left,
+		Right,
+	};
+
+	enum Orientation
+	{
+		Horizontal,
+		Vertical,
+	};
+
+	void setLocation(int screen, Side side);
+
 private:
-	int m_screen;
+	Orientation m_orientation;
 };
+
+#endif
