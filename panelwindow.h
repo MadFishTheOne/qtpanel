@@ -2,8 +2,10 @@
 #define PANELWINDOW_H
 
 #include <QtGui/QWidget>
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QGraphicsView>
+
+class QGraphicsScene;
+class QGraphicsView;
+class Applet;
 
 class PanelWindow: public QWidget
 {
@@ -28,12 +30,19 @@ public:
 		Vertical,
 	};
 
+	bool init();
+
 	void setDockMode(bool dockMode);
 	void setScreen(int screen);
 	void setHorizontalAnchor(Anchor horizontalAnchor);
 	void setVerticalAnchor(Anchor verticalAnchor);
 	void setOrientation(Orientation orientation);
 	void updatePosition();
+
+	QGraphicsScene* scene()
+	{
+		return m_scene;
+	}
 
 	void resizeEvent(QResizeEvent* event);
 
@@ -42,10 +51,11 @@ private:
 	int m_screen;
 	Anchor m_horizontalAnchor;
 	Anchor m_verticalAnchor;
-	Orientation m_orientation;
+	bool m_orientation;
 
-	QGraphicsScene* scene;
-	QGraphicsView* view;
+	QGraphicsScene* m_scene;
+	QGraphicsView* m_view;
+	Applet* m_applet;
 };
 
 #endif

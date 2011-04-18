@@ -4,11 +4,15 @@ find_package(Qt4 REQUIRED)
 set(qtpanel_MOC_HEADERS
 	panelapplication.h
 	panelwindow.h
+	applet.h
+	demoapplet.h
 )
 set(qtpanel_SOURCES
 	main.cpp
 	panelapplication.cpp
 	panelwindow.cpp
+	applet.cpp
+	demoapplet.cpp
 )
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

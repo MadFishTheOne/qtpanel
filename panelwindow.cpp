@@ -3,24 +3,40 @@
 #include <QtGui/QResizeEvent>
 #include <QtGui/QApplication>
 #include <QtGui/QDesktopWidget>
+#include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsView>
+#include "demoapplet.h"
 
 PanelWindow::PanelWindow()
-	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(Horizontal)
+	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(false)
 {
-	scene = new QGraphicsScene();
-	scene->setBackgroundBrush(QBrush(Qt::darkGreen));
+	m_scene = new QGraphicsScene();
+	m_scene->setBackgroundBrush(QBrush(Qt::darkGreen));
 
-	view = new QGraphicsView(scene, this);
-	view->setStyleSheet("border-style: none;");
-	view->move(0, 0);
+	m_view = new QGraphicsView(m_scene, this);
+	m_view->setStyleSheet("border-style: none;");
+	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	m_view->setRenderHint(QPainter::Antialiasing);
+	m_view->move(0, 0);
+
+	m_applet = new DemoApplet(this);
 
 	resize(defaultWidth, defaultHeight);
 }
 
 PanelWindow::~PanelWindow()
 {
-	delete view;
-	delete scene;
+	delete m_applet;
+	delete m_view;
+	delete m_scene;
+}
+
+bool PanelWindow::init()
+{
+	if(!m_applet->init())
+		return false;
+	m_applet->setSize(QSize(32, 32));
 }
 
 void PanelWindow::setDockMode(bool dockMode)
@@ -101,5 +117,6 @@ void PanelWindow::updatePosition()
 
 void PanelWindow::resizeEvent(QResizeEvent* event)
 {
-	view->resize(event->size());
+	m_view->resize(event->size());
+	m_view->setSceneRect(0, 0, event->size().width(), event->size().height());
 }
