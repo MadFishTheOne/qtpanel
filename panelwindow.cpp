@@ -9,10 +9,10 @@
 #include "spacerapplet.h"
 
 PanelWindow::PanelWindow()
-	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(false)
+	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(Horizontal), m_layoutPolicy(Normal)
 {
 	m_scene = new QGraphicsScene();
-	m_scene->setBackgroundBrush(QBrush(Qt::darkGreen));
+	m_scene->setBackgroundBrush(QBrush(Qt::black));
 
 	m_view = new QGraphicsView(m_scene, this);
 	m_view->setStyleSheet("border-style: none;");
@@ -53,30 +53,36 @@ void PanelWindow::setDockMode(bool dockMode)
 {
 	m_dockMode = dockMode;
 	setAttribute(Qt::WA_X11NetWmWindowTypeDock, m_dockMode);
-	updatePosition();
+	updateLayout();
 }
 
 void PanelWindow::setScreen(int screen)
 {
 	m_screen = screen;
-	updatePosition();
+	updateLayout();
 }
 
 void PanelWindow::setHorizontalAnchor(Anchor horizontalAnchor)
 {
 	m_horizontalAnchor = horizontalAnchor;
-	updatePosition();
+	updateLayout();
 }
 
 void PanelWindow::setVerticalAnchor(Anchor verticalAnchor)
 {
 	m_verticalAnchor = verticalAnchor;
-	updatePosition();
+	updateLayout();
 }
 
 void PanelWindow::setOrientation(Orientation orientation)
 {
 	m_orientation = orientation;
+}
+
+void PanelWindow::setLayoutPolicy(LayoutPolicy layoutPolicy)
+{
+	m_layoutPolicy = layoutPolicy;
+	updateLayout();
 }
 
 void PanelWindow::updatePosition()
@@ -130,11 +136,35 @@ void PanelWindow::resizeEvent(QResizeEvent* event)
 	m_view->resize(event->size());
 	m_view->setSceneRect(0, 0, event->size().width(), event->size().height());
 	updateLayout();
+	updatePosition();
 }
 
 void PanelWindow::updateLayout()
 {
 	// TODO: Vertical orientation support.
+
+	if(m_layoutPolicy != Normal && !m_dockMode)
+	{
+		int desiredSize = 0;
+		if(m_layoutPolicy == AutoSize)
+		{
+			for(int i = 0; i < m_applets.size(); i++)
+			{
+				if(m_applets[i]->desiredSize().width() >= 0)
+					desiredSize += m_applets[i]->desiredSize().width();
+				else
+					desiredSize += 64; // Spacer applets don't really make sense on auto-size panel.
+			}
+		}
+		if(m_layoutPolicy == FillSpace)
+		{
+			QRect screenGeometry = QApplication::desktop()->screenGeometry(m_screen);
+			desiredSize = screenGeometry.width();
+		}
+
+		if(desiredSize != width())
+			resize(desiredSize, height());
+	}
 
 	// Get total amount of space available for "spacer" applets (that take all available free space).
 	int freeSpace = width();

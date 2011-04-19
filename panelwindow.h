@@ -31,6 +31,13 @@ public:
 		Vertical,
 	};
 
+	enum LayoutPolicy
+	{
+		Normal,
+		AutoSize,
+		FillSpace,
+	};
+
 	bool init();
 
 	void setDockMode(bool dockMode);
@@ -38,6 +45,7 @@ public:
 	void setHorizontalAnchor(Anchor horizontalAnchor);
 	void setVerticalAnchor(Anchor verticalAnchor);
 	void setOrientation(Orientation orientation);
+	void setLayoutPolicy(LayoutPolicy layoutPolicy);
 	void updatePosition();
 
 	QGraphicsScene* scene()
@@ -55,6 +63,7 @@ private:
 	Anchor m_horizontalAnchor;
 	Anchor m_verticalAnchor;
 	bool m_orientation;
+	LayoutPolicy m_layoutPolicy;
 
 	QGraphicsScene* m_scene;
 	QGraphicsView* m_view;
