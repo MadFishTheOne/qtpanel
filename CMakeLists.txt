@@ -6,6 +6,7 @@ set(qtpanel_MOC_HEADERS
 	panelwindow.h
 	applet.h
 	demoapplet.h
+	spacerapplet.h
 )
 set(qtpanel_SOURCES
 	main.cpp
@@ -13,6 +14,7 @@ set(qtpanel_SOURCES
 	panelwindow.cpp
 	applet.cpp
 	demoapplet.cpp
+	spacerapplet.cpp
 )
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

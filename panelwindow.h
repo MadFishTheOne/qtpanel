@@ -1,6 +1,7 @@
 #ifndef PANELWINDOW_H
 #define PANELWINDOW_H
 
+#include <QtCore/QVector>
 #include <QtGui/QWidget>
 
 class QGraphicsScene;
@@ -46,6 +47,8 @@ public:
 
 	void resizeEvent(QResizeEvent* event);
 
+	void updateLayout();
+
 private:
 	bool m_dockMode;
 	int m_screen;
@@ -55,7 +58,7 @@ private:
 
 	QGraphicsScene* m_scene;
 	QGraphicsView* m_view;
-	Applet* m_applet;
+	QVector<Applet*> m_applets;
 };
 
 #endif

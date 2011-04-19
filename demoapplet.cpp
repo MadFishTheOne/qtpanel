@@ -7,25 +7,24 @@
 DemoApplet::DemoApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
-	rect = new QGraphicsRectItem();
-	rect->setBrush(QBrush(Qt::blue));
-	m_panelWindow->scene()->addItem(rect);
+	m_rectItem = new QGraphicsRectItem();
+	m_rectItem->setBrush(QBrush(Qt::blue));
+	m_panelWindow->scene()->addItem(m_rectItem);
 }
 
 DemoApplet::~DemoApplet()
 {
-	m_panelWindow->scene()->removeItem(rect);
-	delete rect;
-}
-
-bool DemoApplet::init()
-{
-	emit desiredSizeChanged(QSize(128, 128));
-	return true;
+	m_panelWindow->scene()->removeItem(m_rectItem);
+	delete m_rectItem;
 }
 
 void DemoApplet::update()
 {
 	static const int delta = 8;
-	rect->setRect(delta, delta, m_size.width() - delta, m_size.height() - delta);
+	m_rectItem->setRect(m_rect.left() + delta, m_rect.top() + delta, m_rect.width() - 2*delta, m_rect.height() - 2*delta);
+}
+
+QSize DemoApplet::desiredSize()
+{
+	return QSize(64, 64);
 }

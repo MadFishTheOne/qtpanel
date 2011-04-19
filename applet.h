@@ -2,7 +2,7 @@
 #define APPLET_H
 
 #include <QtCore/QObject>
-#include <QtCore/QSize>
+#include <QtCore/QRect>
 
 class PanelWindow;
 
@@ -12,17 +12,15 @@ class Applet: public QObject
 public:
 	Applet(PanelWindow* panelWindow);
 	~Applet();
-	virtual bool init() = 0;
-	void setSize(const QSize& size);
-
-signals:
-	void desiredSizeChanged(const QSize& desiredSize);
+	virtual bool init();
+	void setRect(const QRect& rect);
+	virtual QSize desiredSize() = 0;
 
 protected:
-	virtual void update() = 0;
+	virtual void update();
 
 	PanelWindow* m_panelWindow;
-	QSize m_size;
+	QRect m_rect;
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsView>
 #include "demoapplet.h"
+#include "spacerapplet.h"
 
 PanelWindow::PanelWindow()
 	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(false)
@@ -20,23 +21,32 @@ PanelWindow::PanelWindow()
 	m_view->setRenderHint(QPainter::Antialiasing);
 	m_view->move(0, 0);
 
-	m_applet = new DemoApplet(this);
+	m_applets.append(new DemoApplet(this));
+	m_applets.append(new DemoApplet(this));
+	m_applets.append(new DemoApplet(this));
+	m_applets.append(new SpacerApplet(this));
+	m_applets.append(new DemoApplet(this));
+	m_applets.append(new DemoApplet(this));
 
 	resize(defaultWidth, defaultHeight);
 }
 
 PanelWindow::~PanelWindow()
 {
-	delete m_applet;
+	for(int i = 0; i < m_applets.size(); i++)
+		delete m_applets[i];
 	delete m_view;
 	delete m_scene;
 }
 
 bool PanelWindow::init()
 {
-	if(!m_applet->init())
-		return false;
-	m_applet->setSize(QSize(32, 32));
+	for(int i = 0; i < m_applets.size(); i++)
+	{
+		if(!m_applets[i]->init())
+			return false;
+//		m_applets[i]->setRect(QRect(32*i, 0, 32, 32));
+	}
 }
 
 void PanelWindow::setDockMode(bool dockMode)
@@ -119,4 +129,59 @@ void PanelWindow::resizeEvent(QResizeEvent* event)
 {
 	m_view->resize(event->size());
 	m_view->setSceneRect(0, 0, event->size().width(), event->size().height());
+	updateLayout();
+}
+
+void PanelWindow::updateLayout()
+{
+	// TODO: Vertical orientation support.
+
+	// Get total amount of space available for "spacer" applets (that take all available free space).
+	int freeSpace = width();
+	int numSpacers = 0;
+	for(int i = 0; i < m_applets.size(); i++)
+	{
+		if(m_applets[i]->desiredSize().width() >= 0)
+			freeSpace -= m_applets[i]->desiredSize().width();
+		else
+			numSpacers++;
+	}
+	int spaceForOneSpacer = freeSpace/numSpacers;
+
+	// Calculate rectangles for each applet.
+	int spacePos = 0;
+	for(int i = 0; i < m_applets.size(); i++)
+	{
+		QPoint appletPosition(spacePos, 0);
+		QSize appletSize = m_applets[i]->desiredSize();
+
+		if(appletSize.width() < 0)
+		{
+			if(numSpacers > 1)
+			{
+				appletSize.setWidth(spaceForOneSpacer);
+				freeSpace -= spaceForOneSpacer;
+				numSpacers--;
+			}
+			else
+			{
+				appletSize.setWidth(freeSpace);
+				freeSpace = 0;
+				numSpacers--;
+			}
+		}
+
+		if(appletSize.height() < 0 || appletSize.height() > height())
+		{
+			appletSize.setHeight(height());
+		}
+		else
+		{
+			appletPosition.setY((height() - appletSize.height())/2);
+		}
+
+		m_applets[i]->setRect(QRect(appletPosition, appletSize));
+
+		spacePos += appletSize.width();
+	}
 }
