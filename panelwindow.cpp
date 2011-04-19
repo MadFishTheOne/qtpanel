@@ -28,7 +28,7 @@ QRectF PanelWindowGraphicsItem::boundingRect() const
 void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->setPen(Qt::NoPen);
-	painter->setBrush(QBrush(Qt::black));
+	painter->setBrush(QColor(0, 0, 0, 128));
 	painter->drawRect(boundingRect());
 
 	static const int borderThickness = 3;
@@ -36,8 +36,8 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 	{
 		QLinearGradient gradient(0.0, m_panelWindow->height() - borderThickness, 0.0, m_panelWindow->height());
 		gradient.setSpread(QGradient::RepeatSpread);
-		gradient.setColorAt(0, Qt::black);
-		gradient.setColorAt(1, Qt::darkGray);
+		gradient.setColorAt(0, QColor(255, 255, 255, 0));
+		gradient.setColorAt(1, QColor(255, 255, 255, 128));
 		painter->setBrush(QBrush(gradient));
 		painter->drawRect(0.0, m_panelWindow->height() - borderThickness, m_panelWindow->width(), borderThickness);
 	}
@@ -45,8 +45,8 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 	{
 		QLinearGradient gradient(0.0, 0.0, 0.0, borderThickness);
 		gradient.setSpread(QGradient::RepeatSpread);
-		gradient.setColorAt(0, Qt::darkGray);
-		gradient.setColorAt(1, Qt::black);
+		gradient.setColorAt(0, QColor(255, 255, 255, 128));
+		gradient.setColorAt(1, QColor(255, 255, 255, 0));
 		painter->setBrush(QBrush(gradient));
 		painter->drawRect(0.0, 0.0, m_panelWindow->width(), borderThickness);
 	}
@@ -55,6 +55,9 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 PanelWindow::PanelWindow()
 	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(Horizontal), m_layoutPolicy(Normal)
 {
+	setStyleSheet("background-color: transparent");
+	setAttribute(Qt::WA_TranslucentBackground);
+
 	m_scene = new QGraphicsScene();
 	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
 
@@ -224,6 +227,15 @@ void PanelWindow::updatePosition()
 		values.resize(4);
 		X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT", values);
 	}
+
+	// Update "blur behind" hint.
+	QVector<unsigned long> values;
+	values.resize(4);
+	values[0] = 0;
+	values[1] = 0;
+	values[2] = width();
+	values[3] = height();
+	X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
 }
 
 void PanelWindow::resizeEvent(QResizeEvent* event)
