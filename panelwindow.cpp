@@ -10,17 +10,62 @@
 #include "demoapplet.h"
 #include "spacerapplet.h"
 
+PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
+	: m_panelWindow(panelWindow)
+{
+	setZValue(-1.0); // Background.
+}
+
+PanelWindowGraphicsItem::~PanelWindowGraphicsItem()
+{
+}
+
+QRectF PanelWindowGraphicsItem::boundingRect() const
+{
+	return QRectF(0.0, 0.0, m_panelWindow->width(), m_panelWindow->height());
+}
+
+void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+	painter->setPen(Qt::NoPen);
+	painter->setBrush(QBrush(Qt::black));
+	painter->drawRect(boundingRect());
+
+	static const int borderThickness = 3;
+	if(m_panelWindow->verticalAnchor() == PanelWindow::Min)
+	{
+		QLinearGradient gradient(0.0, m_panelWindow->height() - borderThickness, 0.0, m_panelWindow->height());
+		gradient.setSpread(QGradient::RepeatSpread);
+		gradient.setColorAt(0, Qt::black);
+		gradient.setColorAt(1, Qt::darkGray);
+		painter->setBrush(QBrush(gradient));
+		painter->drawRect(0.0, m_panelWindow->height() - borderThickness, m_panelWindow->width(), borderThickness);
+	}
+	else
+	{
+		QLinearGradient gradient(0.0, 0.0, 0.0, borderThickness);
+		gradient.setSpread(QGradient::RepeatSpread);
+		gradient.setColorAt(0, Qt::darkGray);
+		gradient.setColorAt(1, Qt::black);
+		painter->setBrush(QBrush(gradient));
+		painter->drawRect(0.0, 0.0, m_panelWindow->width(), borderThickness);
+	}
+}
+
 PanelWindow::PanelWindow()
 	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(Horizontal), m_layoutPolicy(Normal)
 {
 	m_scene = new QGraphicsScene();
-	m_scene->setBackgroundBrush(QBrush(Qt::black));
+	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
+
+	m_panelItem = new PanelWindowGraphicsItem(this);
+	m_scene->addItem(m_panelItem);
 
 	m_view = new QGraphicsView(m_scene, this);
 	m_view->setStyleSheet("border-style: none;");
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	m_view->setRenderHint(QPainter::Antialiasing);
+	//m_view->setRenderHint(QPainter::Antialiasing);
 	m_view->move(0, 0);
 
 	m_applets.append(new DemoApplet(this));
@@ -38,6 +83,7 @@ PanelWindow::~PanelWindow()
 	for(int i = 0; i < m_applets.size(); i++)
 		delete m_applets[i];
 	delete m_view;
+	delete m_panelItem;
 	delete m_scene;
 }
 
@@ -112,7 +158,7 @@ void PanelWindow::updatePosition()
 		x = (screenGeometry.left() + screenGeometry.right() - width())/2;
 		break;
 	case Max:
-		x = screenGeometry.right() - width();
+		x = screenGeometry.right() - width() + 1;
 		break;
 	default:
 		Q_ASSERT(false);
@@ -130,7 +176,7 @@ void PanelWindow::updatePosition()
 		y = (screenGeometry.top() + screenGeometry.bottom() - height())/2;
 		break;
 	case Max:
-		y = screenGeometry.bottom() - height();
+		y = screenGeometry.bottom() - height() + 1;
 		break;
 	default:
 		Q_ASSERT(false);
