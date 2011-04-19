@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(qtpanel)
 find_package(Qt4 REQUIRED)
 set(qtpanel_MOC_HEADERS
+	x11support.h
 	panelapplication.h
 	panelwindow.h
 	applet.h
@@ -9,6 +10,7 @@ set(qtpanel_MOC_HEADERS
 	spacerapplet.h
 )
 set(qtpanel_SOURCES
+	x11support.cpp
 	main.cpp
 	panelapplication.cpp
 	panelwindow.cpp

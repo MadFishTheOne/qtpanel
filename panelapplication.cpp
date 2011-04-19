@@ -1,8 +1,12 @@
 #include "panelapplication.h"
 
+#include "x11support.h"
+
 PanelApplication::PanelApplication(int& argc, char** argv)
 	: QApplication(argc, argv)
 {
+	m_x11support = new X11Support();
+
 	m_panelWindow = new PanelWindow();
 	m_panelWindow->resize(128, 24);
 	m_panelWindow->setLayoutPolicy(PanelWindow::FillSpace);
@@ -14,4 +18,5 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 PanelApplication::~PanelApplication()
 {
 	delete m_panelWindow;
+	delete m_x11support;
 }

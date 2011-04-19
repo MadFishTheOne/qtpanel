@@ -5,6 +5,8 @@
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsView>
+#include "x11support.h"
+
 #include "demoapplet.h"
 #include "spacerapplet.h"
 
@@ -45,7 +47,6 @@ bool PanelWindow::init()
 	{
 		if(!m_applets[i]->init())
 			return false;
-//		m_applets[i]->setRect(QRect(32*i, 0, 32, 32));
 	}
 }
 
@@ -53,25 +54,33 @@ void PanelWindow::setDockMode(bool dockMode)
 {
 	m_dockMode = dockMode;
 	setAttribute(Qt::WA_X11NetWmWindowTypeDock, m_dockMode);
+	if(!m_dockMode)
+	{
+		// No need to reserve space anymore.
+		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT");
+		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT_PARTIAL");
+	}
 	updateLayout();
+	updatePosition();
 }
 
 void PanelWindow::setScreen(int screen)
 {
 	m_screen = screen;
 	updateLayout();
+	updatePosition();
 }
 
 void PanelWindow::setHorizontalAnchor(Anchor horizontalAnchor)
 {
 	m_horizontalAnchor = horizontalAnchor;
-	updateLayout();
+	updatePosition();
 }
 
 void PanelWindow::setVerticalAnchor(Anchor verticalAnchor)
 {
 	m_verticalAnchor = verticalAnchor;
-	updateLayout();
+	updatePosition();
 }
 
 void PanelWindow::setOrientation(Orientation orientation)
@@ -129,6 +138,46 @@ void PanelWindow::updatePosition()
 	}
 
 	move(x, y);
+
+	// Update reserved space.
+	if(m_dockMode)
+	{
+		QVector<unsigned long> values; // Values for setting _NET_WM_STRUT_PARTIAL property.
+		values.fill(0, 12);
+		switch(m_horizontalAnchor)
+		{
+		case Min:
+			values[0] = width();
+			values[4] = y;
+			values[5] = y + height();
+			break;
+		case Max:
+			values[1] = width();
+			values[6] = y;
+			values[7] = y + height();
+			break;
+		default:
+			break;
+		}
+		switch(m_verticalAnchor)
+		{
+		case Min:
+			values[2] = height();
+			values[8] = x;
+			values[9] = x + width();
+			break;
+		case Max:
+			values[3] = height();
+			values[10] = x;
+			values[11] = x + width();
+			break;
+		default:
+			break;
+		}
+		X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT_PARTIAL", values);
+		values.resize(4);
+		X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT", values);
+	}
 }
 
 void PanelWindow::resizeEvent(QResizeEvent* event)

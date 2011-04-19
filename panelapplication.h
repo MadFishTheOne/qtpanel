@@ -4,6 +4,8 @@
 #include <QtGui/QApplication>
 #include "panelwindow.h"
 
+class X11Support;
+
 class PanelApplication: public QApplication
 {
 	Q_OBJECT
@@ -12,6 +14,7 @@ public:
 	~PanelApplication();
 
 private:
+	X11Support* m_x11support;
 	PanelWindow* m_panelWindow;
 };
 
