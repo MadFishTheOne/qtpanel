@@ -3,6 +3,15 @@
 #include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
 
+TextGraphicsItem::TextGraphicsItem(QGraphicsItem* parent)
+	: QGraphicsItem(parent)
+{
+}
+
+TextGraphicsItem::~TextGraphicsItem()
+{
+}
+
 void TextGraphicsItem::setColor(const QColor& color)
 {
 	m_color = color;

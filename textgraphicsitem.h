@@ -8,6 +8,9 @@
 class TextGraphicsItem: public QGraphicsItem
 {
 public:
+	TextGraphicsItem(QGraphicsItem* parent = NULL);
+	~TextGraphicsItem();
+
 	void setColor(const QColor& color);
 	void setFont(const QFont& font);
 	void setText(const QString& text);

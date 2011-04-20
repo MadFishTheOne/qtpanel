@@ -14,7 +14,7 @@
 PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
 {
-	setZValue(-1.0); // Background.
+	setZValue(-10.0); // Background.
 }
 
 PanelWindowGraphicsItem::~PanelWindowGraphicsItem()
@@ -317,7 +317,8 @@ void PanelWindow::updateLayout()
 
 		appletSize.setHeight(height());
 
-		m_applets[i]->setRect(QRect(appletPosition, appletSize));
+		m_applets[i]->setPosition(appletPosition);
+		m_applets[i]->setSize(appletSize);
 
 		spacePos += appletSize.width();
 	}

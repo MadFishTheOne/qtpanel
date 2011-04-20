@@ -12,10 +12,9 @@ ClockApplet::ClockApplet(PanelWindow* panelWindow)
 	m_timer = new QTimer();
 	m_timer->setSingleShot(true);
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
-	m_textItem = new TextGraphicsItem();
+	m_textItem = new TextGraphicsItem(m_appletItem);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_panelWindow->font());
-	m_panelWindow->scene()->addItem(m_textItem);
 }
 
 ClockApplet::~ClockApplet()
@@ -33,7 +32,7 @@ bool ClockApplet::init()
 
 void ClockApplet::layoutChanged()
 {
-	m_textItem->setPos(m_rect.left() + 8, m_rect.top() + m_panelWindow->textBaseLine());
+	m_textItem->setPos(8, m_panelWindow->textBaseLine());
 }
 
 void ClockApplet::update()

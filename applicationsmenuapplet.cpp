@@ -32,5 +32,5 @@ QSize ApplicationsMenuApplet::desiredSize()
 
 void ApplicationsMenuApplet::layoutChanged()
 {
-	m_textItem->setPos(m_rect.left() + 8, m_rect.top() + m_panelWindow->textBaseLine());
+	m_textItem->setPos(8, m_panelWindow->textBaseLine());
 }

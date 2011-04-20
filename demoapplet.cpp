@@ -7,10 +7,9 @@
 DemoApplet::DemoApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
-	m_rectItem = new QGraphicsRectItem();
+	m_rectItem = new QGraphicsRectItem(m_appletItem);
 	m_rectItem->setPen(QPen(Qt::NoPen));
 	m_rectItem->setBrush(QBrush(Qt::blue));
-	m_panelWindow->scene()->addItem(m_rectItem);
 }
 
 DemoApplet::~DemoApplet()
@@ -22,7 +21,7 @@ DemoApplet::~DemoApplet()
 void DemoApplet::layoutChanged()
 {
 	static const int delta = 8;
-	m_rectItem->setRect(m_rect.left() + delta, m_rect.top() + delta, m_rect.width() - 2*delta, m_rect.height() - 2*delta);
+	m_rectItem->setRect(delta, delta, m_size.width() - 2*delta, m_size.height() - 2*delta);
 }
 
 QSize DemoApplet::desiredSize()
