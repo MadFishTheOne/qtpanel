@@ -20,9 +20,9 @@ bool Applet::init()
 void Applet::setRect(const QRect& rect)
 {
 	m_rect = rect;
-	update();
+	layoutChanged();
 }
 
-void Applet::update()
+void Applet::layoutChanged()
 {
 }

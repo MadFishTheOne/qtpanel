@@ -59,6 +59,9 @@ PanelWindow::PanelWindow()
 	setStyleSheet("background-color: transparent");
 	setAttribute(Qt::WA_TranslucentBackground);
 
+	// TODO: Make this configurable.
+	m_font = QFont("Droid Sans", 12);
+
 	m_scene = new QGraphicsScene();
 	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
 
@@ -238,6 +241,12 @@ void PanelWindow::updatePosition()
 	X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
 }
 
+int PanelWindow::textBaseLine()
+{
+	QFontMetrics metrics(m_font);
+	return (height() - metrics.height())/2 + metrics.ascent();
+}
+
 void PanelWindow::resizeEvent(QResizeEvent* event)
 {
 	m_view->resize(event->size());
@@ -308,14 +317,7 @@ void PanelWindow::updateLayout()
 			}
 		}
 
-		if(appletSize.height() < 0 || appletSize.height() > height())
-		{
-			appletSize.setHeight(height());
-		}
-		else
-		{
-			appletPosition.setY((height() - appletSize.height())/2);
-		}
+		appletSize.setHeight(height());
 
 		m_applets[i]->setRect(QRect(appletPosition, appletSize));
 

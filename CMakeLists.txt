@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(qtpanel)
 find_package(Qt4 REQUIRED)
+set(qtpanel_HEADERS
+	textgraphicsitem.h
+)
 set(qtpanel_MOC_HEADERS
 	x11support.h
 	panelapplication.h
@@ -15,6 +18,7 @@ set(qtpanel_SOURCES
 	main.cpp
 	panelapplication.cpp
 	panelwindow.cpp
+	textgraphicsitem.cpp
 	applet.cpp
 	demoapplet.cpp
 	spacerapplet.cpp
@@ -23,5 +27,5 @@ set(qtpanel_SOURCES
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 qt4_wrap_cpp(qtpanel_MOC_OUTPUT ${qtpanel_MOC_HEADERS})
-add_executable(qtpanel ${qtpanel_SOURCES} ${qtpanel_MOC_OUTPUT})
+add_executable(qtpanel ${qtpanel_SOURCES} ${qtpanel_MOC_OUTPUT} ${qtpanel_HEADERS})
 target_link_libraries(qtpanel ${QT_LIBRARIES})

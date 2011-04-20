@@ -19,7 +19,7 @@ DemoApplet::~DemoApplet()
 	delete m_rectItem;
 }
 
-void DemoApplet::update()
+void DemoApplet::layoutChanged()
 {
 	static const int delta = 8;
 	m_rectItem->setRect(m_rect.left() + delta, m_rect.top() + delta, m_rect.width() - 2*delta, m_rect.height() - 2*delta);

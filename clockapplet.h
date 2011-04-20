@@ -4,7 +4,7 @@
 #include "applet.h"
 
 class QTimer;
-class QGraphicsTextItem;
+class TextGraphicsItem;
 
 class ClockApplet: public Applet
 {
@@ -14,14 +14,20 @@ public:
 	~ClockApplet();
 
 	bool init();
-	void update();
 	QSize desiredSize();
+
+protected:
+	void layoutChanged();
+
+private slots:
+	void update();
 
 private:
 	void scheduleUpdate();
 
 	QTimer* m_timer;
-	QGraphicsTextItem* m_textItem;
+	QString m_text;
+	TextGraphicsItem* m_textItem;
 };
 
 #endif

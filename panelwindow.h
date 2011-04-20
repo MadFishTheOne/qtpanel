@@ -5,6 +5,7 @@
 #include <QtGui/QWidget>
 #include <QtGui/QGraphicsItem>
 
+class QFont;
 class QGraphicsScene;
 class QGraphicsView;
 class Applet;
@@ -99,6 +100,13 @@ public:
 
 	void updatePosition();
 
+	const QFont& font() const
+	{
+		return m_font;
+	}
+
+	int textBaseLine();
+
 	QGraphicsScene* scene()
 	{
 		return m_scene;
@@ -116,6 +124,7 @@ private:
 	Orientation m_orientation;
 	LayoutPolicy m_layoutPolicy;
 
+	QFont m_font;
 	QGraphicsScene* m_scene;
 	QGraphicsView* m_view;
 	PanelWindowGraphicsItem* m_panelItem;

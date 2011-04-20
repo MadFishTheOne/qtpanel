@@ -12,8 +12,10 @@ public:
 	DemoApplet(PanelWindow* panelWindow);
 	~DemoApplet();
 
-	void update();
 	QSize desiredSize();
+
+protected:
+	void layoutChanged();
 
 private:
 	QGraphicsRectItem* m_rectItem;
