@@ -3,7 +3,6 @@
 #include <QtCore/QTimer>
 #include <QtCore/QDateTime>
 #include <QtGui/QGraphicsScene>
-#include <QtGui/QGraphicsTextItem>
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
 
@@ -34,7 +33,7 @@ bool ClockApplet::init()
 
 void ClockApplet::layoutChanged()
 {
-	m_textItem->setPos(m_rect.left(), m_rect.top() + m_panelWindow->textBaseLine());
+	m_textItem->setPos(m_rect.left() + 8, m_rect.top() + m_panelWindow->textBaseLine());
 }
 
 void ClockApplet::update()
@@ -48,7 +47,7 @@ void ClockApplet::update()
 
 QSize ClockApplet::desiredSize()
 {
-	return QSize(m_textItem->boundingRect().size().width(), m_textItem->boundingRect().size().height());
+	return QSize(m_textItem->boundingRect().size().width() + 16, m_textItem->boundingRect().size().height());
 }
 
 void ClockApplet::scheduleUpdate()

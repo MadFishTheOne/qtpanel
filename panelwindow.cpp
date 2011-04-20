@@ -7,7 +7,7 @@
 #include <QtGui/QGraphicsView>
 #include "x11support.h"
 
-#include "demoapplet.h"
+#include "applicationsmenuapplet.h"
 #include "spacerapplet.h"
 #include "clockapplet.h"
 
@@ -75,9 +75,7 @@ PanelWindow::PanelWindow()
 	//m_view->setRenderHint(QPainter::Antialiasing);
 	m_view->move(0, 0);
 
-	m_applets.append(new DemoApplet(this));
-	m_applets.append(new DemoApplet(this));
-	m_applets.append(new DemoApplet(this));
+	m_applets.append(new ApplicationsMenuApplet(this));
 	m_applets.append(new SpacerApplet(this));
 	m_applets.append(new ClockApplet(this));
 

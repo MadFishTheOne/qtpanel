@@ -12,6 +12,7 @@ set(qtpanel_MOC_HEADERS
 	demoapplet.h
 	spacerapplet.h
 	clockapplet.h
+	applicationsmenuapplet.h
 )
 set(qtpanel_SOURCES
 	x11support.cpp
@@ -23,6 +24,7 @@ set(qtpanel_SOURCES
 	demoapplet.cpp
 	spacerapplet.cpp
 	clockapplet.cpp
+	applicationsmenuapplet.cpp
 )
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
