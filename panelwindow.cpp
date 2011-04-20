@@ -9,6 +9,7 @@
 
 #include "demoapplet.h"
 #include "spacerapplet.h"
+#include "clockapplet.h"
 
 PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
@@ -75,8 +76,7 @@ PanelWindow::PanelWindow()
 	m_applets.append(new DemoApplet(this));
 	m_applets.append(new DemoApplet(this));
 	m_applets.append(new SpacerApplet(this));
-	m_applets.append(new DemoApplet(this));
-	m_applets.append(new DemoApplet(this));
+	m_applets.append(new ClockApplet(this));
 
 	resize(defaultWidth, defaultHeight);
 }

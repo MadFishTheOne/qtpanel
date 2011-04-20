@@ -8,6 +8,7 @@ set(qtpanel_MOC_HEADERS
 	applet.h
 	demoapplet.h
 	spacerapplet.h
+	clockapplet.h
 )
 set(qtpanel_SOURCES
 	x11support.cpp
@@ -17,6 +18,7 @@ set(qtpanel_SOURCES
 	applet.cpp
 	demoapplet.cpp
 	spacerapplet.cpp
+	clockapplet.cpp
 )
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})

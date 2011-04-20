@@ -16,9 +16,10 @@ public:
 	void setRect(const QRect& rect);
 	virtual QSize desiredSize() = 0;
 
-protected:
+protected slots:
 	virtual void update();
 
+protected:
 	PanelWindow* m_panelWindow;
 	QRect m_rect;
 };
