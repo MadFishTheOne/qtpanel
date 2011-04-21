@@ -2,6 +2,7 @@
 #define APPLICATIONSMENUAPPLET_H
 
 #include <QtCore/QVector>
+#include <QtCore/QSet>
 #include "applet.h"
 
 class DesktopFile
@@ -24,10 +25,16 @@ public:
 		return m_icon;
 	}
 
+	const QStringList& categories() const
+	{
+		return m_categories;
+	}
+
 private:
 	QString m_name;
 	QString m_exec;
 	QString m_icon;
+	QStringList m_categories;
 };
 
 class TextGraphicsItem;
