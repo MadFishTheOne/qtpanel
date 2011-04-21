@@ -44,6 +44,8 @@ public:
 	}
 	void setSize(const QSize& size);
 	virtual QSize desiredSize() = 0;
+
+public slots:
 	virtual void clicked();
 
 protected:

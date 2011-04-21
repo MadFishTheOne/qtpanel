@@ -1,5 +1,6 @@
 #include "applet.h"
 
+#include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsSceneMouseEvent>
@@ -47,8 +48,14 @@ void AppletGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void AppletGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-	if(boundingRect().contains(event->pos()))
-		m_applet->clicked();
+	if(isUnderMouse())
+	{
+		// FIXME: Workaround.
+		// For some weird reason, if clicked() function is called directly, and menu is opened,
+		// this item will receive hover enter event on menu close. But it shouldn't (mouse is outside).
+		// Probably somehow related to taking a mouse grab when one is already active.
+		QTimer::singleShot(1, m_applet, SLOT(clicked()));
+	}
 }
 
 Applet::Applet(PanelWindow* panelWindow)
