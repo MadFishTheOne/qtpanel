@@ -181,7 +181,12 @@ void ApplicationsMenuApplet::actionTriggered()
 void ApplicationsMenuApplet::updateDesktopFiles()
 {
 	m_desktopFiles.clear();
-	QDir dir("/usr/share/applications");
+	gatherDesktopFiles("/usr/share/applications");
+}
+
+void ApplicationsMenuApplet::gatherDesktopFiles(const QString& path)
+{
+	QDir dir(path);
 	QStringList list = dir.entryList(QStringList("*.desktop"));
 	foreach(const QString& fileName, list)
 	{
@@ -189,4 +194,12 @@ void ApplicationsMenuApplet::updateDesktopFiles()
 		if(file.init(dir.path() + '/' + fileName))
 			m_desktopFiles.append(file);
 	}
+	// Traverse subdirectories recursively.
+	// Apparently, KDE keeps all it's programs in a subdirectory.
+	QStringList subDirList = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+	foreach(const QString& subDirName, subDirList)
+	{
+		gatherDesktopFiles(path + '/' + subDirName);
+	}
 }
+

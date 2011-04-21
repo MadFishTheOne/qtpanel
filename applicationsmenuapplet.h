@@ -58,6 +58,7 @@ private slots:
 
 private:
 	void updateDesktopFiles();
+	void gatherDesktopFiles(const QString& path);
 
 	QVector<DesktopFile> m_desktopFiles;
 	TextGraphicsItem* m_textItem;
