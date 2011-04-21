@@ -3,6 +3,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
+#include <QtCore/QProcess>
 #include <QtGui/QMenu>
 #include <QtGui/QStyle>
 #include <QtGui/QPixmap>
@@ -80,7 +81,7 @@ struct SubMenu
 
 	SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon)
 	{
-		m_menu = new QMenu(parent);
+		m_menu = new QMenu(parent); // Will be deleted automatically.
 		m_menu->setTitle(title);
 		m_menu->setIcon(QIcon::fromTheme(icon));
 		m_menu->menuAction()->setIconVisibleInMenu(true);
@@ -130,6 +131,10 @@ void ApplicationsMenuApplet::clicked()
 		}
 		action->setIcon(icon);
 		action->setIconVisibleInMenu(true);
+		action->setData(m_desktopFiles[i].exec());
+		connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
+
+		// Add to relevant menu.
 		bool subMenuFound = false;
 		for(int k = 0; k < subMenus.size() - 1; k++) // Without "Other".
 		{
@@ -158,6 +163,19 @@ void ApplicationsMenuApplet::clicked()
 void ApplicationsMenuApplet::layoutChanged()
 {
 	m_textItem->setPos(8, m_panelWindow->textBaseLine());
+}
+
+void ApplicationsMenuApplet::actionTriggered()
+{
+	QString exec = static_cast<QAction*>(sender())->data().toString();
+
+	// Don't need arguments from desktop file here.
+	int spacePos = exec.indexOf(' ');
+	if(spacePos != -1)
+		exec.resize(spacePos);
+
+	QProcess process;
+	process.startDetached(exec);
 }
 
 void ApplicationsMenuApplet::updateDesktopFiles()

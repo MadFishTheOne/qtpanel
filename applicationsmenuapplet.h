@@ -53,6 +53,9 @@ public:
 protected:
 	void layoutChanged();
 
+private slots:
+	void actionTriggered();
+
 private:
 	void updateDesktopFiles();
 
