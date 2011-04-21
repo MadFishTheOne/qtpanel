@@ -14,6 +14,7 @@ public:
 
 	bool init();
 	QSize desiredSize();
+	void clicked();
 
 protected:
 	void layoutChanged();

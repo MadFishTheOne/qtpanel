@@ -20,6 +20,8 @@ public:
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+	void mousePressEvent(QGraphicsSceneMouseEvent* event);
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
 
 private:
 	Applet* m_applet;
@@ -42,12 +44,15 @@ public:
 	}
 	void setSize(const QSize& size);
 	virtual QSize desiredSize() = 0;
+	virtual void clicked();
 
 protected:
 	virtual void layoutChanged();
+	QPoint localToScreen(const QPoint& point);
 
 	PanelWindow* m_panelWindow;
 	AppletGraphicsItem* m_appletItem;
+	QPoint m_position;
 	QSize m_size;
 };
 

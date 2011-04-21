@@ -1,5 +1,6 @@
 #include "applicationsmenuapplet.h"
 
+#include <QtGui/QMenu>
 #include <QtGui/QGraphicsScene>
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
@@ -28,6 +29,16 @@ bool ApplicationsMenuApplet::init()
 QSize ApplicationsMenuApplet::desiredSize()
 {
 	return QSize(m_textItem->boundingRect().size().width() + 16, m_textItem->boundingRect().size().height());
+}
+
+void ApplicationsMenuApplet::clicked()
+{
+	QMenu menu;
+	menu.addAction("Action 1");
+	menu.addAction("Action 2");
+	menu.addAction("Action 3");
+	menu.move(localToScreen(QPoint(0, m_size.height())));
+	menu.exec();
 }
 
 void ApplicationsMenuApplet::layoutChanged()

@@ -2,6 +2,7 @@
 
 #include <QtGui/QPainter>
 #include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsSceneMouseEvent>
 #include "panelwindow.h"
 
 AppletGraphicsItem::AppletGraphicsItem(Applet* applet)
@@ -9,6 +10,7 @@ AppletGraphicsItem::AppletGraphicsItem(Applet* applet)
 {
 	setZValue(-1.0);
 	setAcceptsHoverEvents(true);
+	setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 AppletGraphicsItem::~AppletGraphicsItem()
@@ -39,6 +41,16 @@ void AppletGraphicsItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 	update();
 }
 
+void AppletGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+}
+
+void AppletGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+	if(boundingRect().contains(event->pos()))
+		m_applet->clicked();
+}
+
 Applet::Applet(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
 {
@@ -60,7 +72,8 @@ bool Applet::init()
 
 void Applet::setPosition(const QPoint& position)
 {
-	m_appletItem->setPos(position);
+	m_position = position;
+	m_appletItem->setPos(m_position);
 }
 
 void Applet::setSize(const QSize& size)
@@ -69,6 +82,15 @@ void Applet::setSize(const QSize& size)
 	layoutChanged();
 }
 
+void Applet::clicked()
+{
+}
+
 void Applet::layoutChanged()
 {
+}
+
+QPoint Applet::localToScreen(const QPoint& point)
+{
+	return m_panelWindow->pos() + m_position + point;
 }
