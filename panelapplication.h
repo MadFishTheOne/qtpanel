@@ -13,7 +13,18 @@ public:
 	PanelApplication(int& argc, char** argv);
 	~PanelApplication();
 
+	static PanelApplication* instance()
+	{
+		return m_instance;
+	}
+
+	bool x11EventFilter(XEvent* event);
+
+signals:
+	void clientListChanged();
+
 private:
+	static PanelApplication* m_instance;
 	X11Support* m_x11support;
 	PanelWindow* m_panelWindow;
 };

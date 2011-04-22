@@ -16,7 +16,8 @@ public:
 protected:
 	void layoutChanged();
 
-private:
+private slots:
+	void clientListChanged();
 };
 
 #endif

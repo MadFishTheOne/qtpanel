@@ -1,10 +1,31 @@
 #include "panelapplication.h"
 
+#include <stdio.h>
+#include <QtGui/QX11Info>
 #include "x11support.h"
+
+// Keep all the X11 stuff with scary defines below normal headers.
+#include <X11/Xlib.h>
+
+static XErrorHandler oldX11ErrorHandler = NULL;
+
+static int x11errorHandler(Display* display, XErrorEvent* error)
+{
+	if(error->error_code == BadWindow)
+		return 0; // This usually happens when querying property on a window that's already gone. That's OK.
+
+	return (*oldX11ErrorHandler)(display, error);
+}
+
+PanelApplication* PanelApplication::m_instance = NULL;
 
 PanelApplication::PanelApplication(int& argc, char** argv)
 	: QApplication(argc, argv)
 {
+	m_instance = this;
+
+	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
+
 	m_x11support = new X11Support();
 
 	m_panelWindow = new PanelWindow();
@@ -20,4 +41,18 @@ PanelApplication::~PanelApplication()
 {
 	delete m_panelWindow;
 	delete m_x11support;
+
+	m_instance = NULL;
+}
+
+bool PanelApplication::x11EventFilter(XEvent* event)
+{
+	if(event->type == PropertyNotify && event->xproperty.window == QX11Info::appRootWindow())
+	{
+		if(event->xproperty.atom == X11Support::instance()->atom("_NET_CLIENT_LIST"))
+		{
+			emit clientListChanged();
+		}
+	}
+	return false;
 }
