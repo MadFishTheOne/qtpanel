@@ -19,7 +19,6 @@ ClockApplet::ClockApplet(PanelWindow* panelWindow)
 
 ClockApplet::~ClockApplet()
 {
-	m_panelWindow->scene()->removeItem(m_textItem);
 	delete m_textItem;
 	delete m_timer;
 }

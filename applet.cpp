@@ -62,12 +62,11 @@ Applet::Applet(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
 {
 	m_appletItem = new AppletGraphicsItem(this);
-	m_panelWindow->scene()->addItem(m_appletItem);
+	m_appletItem->setParentItem(m_panelWindow->panelItem());
 }
 
 Applet::~Applet()
 {
-	m_panelWindow->scene()->removeItem(m_appletItem);
 	delete m_appletItem;
 }
 

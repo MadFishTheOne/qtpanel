@@ -87,16 +87,14 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	m_subMenus.append(SubMenu(m_menu, "Settings", "Settings", "preferences-desktop"));
 	m_subMenus.append(SubMenu(m_menu, "Other", "Other", "applications-other"));
 
-	m_textItem = new TextGraphicsItem();
+	m_textItem = new TextGraphicsItem(m_appletItem);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_panelWindow->font());
 	m_textItem->setText("Applications");
-	m_panelWindow->scene()->addItem(m_textItem);
 }
 
 ApplicationsMenuApplet::~ApplicationsMenuApplet()
 {
-	m_panelWindow->scene()->removeItem(m_textItem);
 	delete m_textItem;
 	delete m_menu;
 }

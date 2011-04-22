@@ -41,7 +41,7 @@ public:
 
 	void setPosition(const QPoint& position);
 
-	QSize size() const
+	const QSize& size() const
 	{
 		return m_size;
 	}

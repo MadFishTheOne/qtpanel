@@ -107,9 +107,9 @@ public:
 
 	int textBaseLine();
 
-	QGraphicsScene* scene()
+	PanelWindowGraphicsItem* panelItem()
 	{
-		return m_scene;
+		return m_panelItem;
 	}
 
 	void resizeEvent(QResizeEvent* event);

@@ -14,7 +14,6 @@ DemoApplet::DemoApplet(PanelWindow* panelWindow)
 
 DemoApplet::~DemoApplet()
 {
-	m_panelWindow->scene()->removeItem(m_rectItem);
 	delete m_rectItem;
 }
 
