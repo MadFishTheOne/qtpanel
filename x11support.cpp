@@ -40,3 +40,59 @@ void X11Support::setWindowPropertyCardinalArray(unsigned long window, const QStr
 {
 	XChangeProperty(QX11Info::display(), window, atom(name), XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<const unsigned char*>(values.data()), values.size());
 }
+
+template<class T>
+static void getWindowPropertyHelper(unsigned long window, unsigned long atom, unsigned long type, int& numItems, T*& data)
+{
+	Atom retType;
+	int retFormat;
+	unsigned long numItemsTemp;
+	unsigned long bytesLeft;
+	XGetWindowProperty(QX11Info::display(), window, atom, 0, 0x7FFFFFFF, False, type, &retType, &retFormat, &numItemsTemp, &bytesLeft, reinterpret_cast<unsigned char**>(&data));
+	numItems = numItemsTemp;
+}
+
+QVector<unsigned long> X11Support::getWindowPropertyWindowsArray(unsigned long window, const QString& name)
+{
+	int numItems;
+	unsigned long* data;
+	getWindowPropertyHelper(window, atom(name), XA_WINDOW, numItems, data);
+	QVector<unsigned long> values;
+	for(int i = 0; i < numItems; i++)
+		values.append(data[i]);
+	XFree(data);
+	return values;
+}
+
+QString X11Support::getWindowPropertyUTF8String(unsigned long window, const QString& name)
+{
+	int numItems;
+	char* data;
+	getWindowPropertyHelper(window, atom(name), atom("UTF8_STRING"), numItems, data);
+	QString value = QString::fromUtf8(data);
+	XFree(data);
+	return value;
+}
+
+QString X11Support::getWindowPropertyLatin1String(unsigned long window, const QString& name)
+{
+	int numItems;
+	char* data;
+	getWindowPropertyHelper(window, atom(name), XA_STRING, numItems, data);
+	QString value = QString::fromLatin1(data);
+	XFree(data);
+	return value;
+}
+
+QString X11Support::getWindowName(unsigned long window)
+{
+	QString result = getWindowPropertyUTF8String(window, "_NET_WM_VISIBLE_NAME");
+	if(result.isEmpty())
+		result = getWindowPropertyUTF8String(window, "_NET_WM_NAME");
+	if(result.isEmpty())
+		result = getWindowPropertyLatin1String(window, "WM_NAME");
+	if(result.isEmpty())
+		result = "<Unknown>";
+	return result;
+}
+

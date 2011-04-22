@@ -8,7 +8,7 @@
 #include "x11support.h"
 
 #include "applicationsmenuapplet.h"
-#include "spacerapplet.h"
+#include "dockapplet.h"
 #include "clockapplet.h"
 
 PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
@@ -76,7 +76,7 @@ PanelWindow::PanelWindow()
 	m_view->move(0, 0);
 
 	m_applets.append(new ApplicationsMenuApplet(this));
-	m_applets.append(new SpacerApplet(this));
+	m_applets.append(new DockApplet(this));
 	m_applets.append(new ClockApplet(this));
 
 	resize(defaultWidth, defaultHeight);
@@ -290,7 +290,7 @@ void PanelWindow::updateLayout()
 		else
 			numSpacers++;
 	}
-	int spaceForOneSpacer = freeSpace/numSpacers;
+	int spaceForOneSpacer = numSpacers > 0 ? (freeSpace/numSpacers) : 0;
 
 	// Calculate rectangles for each applet.
 	int spacePos = 0;

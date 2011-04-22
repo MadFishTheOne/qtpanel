@@ -22,6 +22,10 @@ public:
 
 	void removeWindowProperty(unsigned long window, const QString& name);
 	void setWindowPropertyCardinalArray(unsigned long window, const QString& name, const QVector<unsigned long>& values);
+	QVector<unsigned long> getWindowPropertyWindowsArray(unsigned long window, const QString& name);
+	QString getWindowPropertyUTF8String(unsigned long window, const QString& name);
+	QString getWindowPropertyLatin1String(unsigned long window, const QString& name);
+	QString getWindowName(unsigned long window);
 
 private:
 	static X11Support* m_instance;

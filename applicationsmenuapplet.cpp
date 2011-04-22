@@ -213,4 +213,3 @@ void ApplicationsMenuApplet::desktopFileAdded(const QString& fileName)
 		desktopFile.setAction(action);
 	}
 }
-
