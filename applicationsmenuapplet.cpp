@@ -74,7 +74,7 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 {
 	m_menu = new QMenu();
 	m_menu->setStyle(&m_style);
-	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { background-color: transparent; color: white; padding-left: 36px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
+	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { background-color: transparent; color: white; padding-left: 38px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
 	m_subMenus.append(SubMenu(m_menu, "Accessories", "Utility", "applications-accessories"));
 	m_subMenus.append(SubMenu(m_menu, "Development", "Development", "applications-development"));
 	m_subMenus.append(SubMenu(m_menu, "Education", "Education", "applications-science"));
@@ -190,7 +190,7 @@ void ApplicationsMenuApplet::desktopFileAdded(const QString& fileName)
 			if(!icon.availableSizes().contains(QSize(iconSize, iconSize)))
 			{
 				QPixmap pixmap = icon.pixmap(256); // Any big size here is fine (at least for now).
-				QPixmap scaledPixmap = pixmap.scaled(QSize(iconSize, iconSize));
+				QPixmap scaledPixmap = pixmap.scaled(QSize(iconSize, iconSize), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 				icon = QIcon(scaledPixmap);
 			}
 		}
