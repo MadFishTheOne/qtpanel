@@ -1,6 +1,5 @@
 #include "panelapplication.h"
 
-#include <stdio.h>
 #include <QtGui/QX11Info>
 #include "x11support.h"
 
