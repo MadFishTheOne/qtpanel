@@ -36,14 +36,29 @@ class Applet: public QObject
 public:
 	Applet(PanelWindow* panelWindow);
 	~Applet();
+
 	virtual bool init();
+
 	void setPosition(const QPoint& position);
+
 	QSize size() const
 	{
 		return m_size;
 	}
+
 	void setSize(const QSize& size);
+
 	virtual QSize desiredSize() = 0;
+
+	PanelWindow* panelWindow()
+	{
+		return m_panelWindow;
+	}
+
+	AppletGraphicsItem* appletItem()
+	{
+		return m_appletItem;
+	}
 
 public slots:
 	virtual void clicked();

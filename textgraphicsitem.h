@@ -15,6 +15,11 @@ public:
 	void setFont(const QFont& font);
 	void setText(const QString& text);
 
+	const QFont& font() const
+	{
+		return m_font;
+	}
+
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 

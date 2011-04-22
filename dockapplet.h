@@ -4,6 +4,7 @@
 #include <QtCore/QVector>
 #include "applet.h"
 
+class TextGraphicsItem;
 class DockApplet;
 
 class Client
@@ -21,10 +22,18 @@ public:
 	// destruction will happen later.
 	void removed();
 
+	QSize desiredSize();
+	void setPosition(const QPoint& position);
+	void setSize(const QSize& size);
+
+	void updateLayout();
+
 private:
 	DockApplet* m_dockApplet;
 	unsigned long m_handle;
 	QString m_name;
+	TextGraphicsItem* m_textItem;
+	QSize m_size;
 };
 
 class DockApplet: public Applet
@@ -39,6 +48,8 @@ public:
 
 	void registerClient(Client* client);
 	void unregisterClient(Client* client);
+
+	void updateLayout();
 
 protected:
 	void layoutChanged();
