@@ -43,9 +43,31 @@ bool DesktopFile::init(const QString& fileName)
 	return true;
 }
 
+SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon)
+{
+	m_menu = new QMenu(parent); // Will be deleted automatically.
+	m_menu->setTitle(title);
+	m_menu->setIcon(QIcon::fromTheme(icon));
+	m_menu->menuAction()->setIconVisibleInMenu(true);
+	m_category = category;
+}
+
 ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
+	m_menu = new QMenu();
+	m_subMenus.append(SubMenu(m_menu, "Accessories", "Utility", "applications-accessories"));
+	m_subMenus.append(SubMenu(m_menu, "Development", "Development", "applications-development"));
+	m_subMenus.append(SubMenu(m_menu, "Education", "Education", "applications-science"));
+	m_subMenus.append(SubMenu(m_menu, "Office", "Office", "applications-office"));
+	m_subMenus.append(SubMenu(m_menu, "Graphics", "Graphics", "applications-graphics"));
+	m_subMenus.append(SubMenu(m_menu, "Multimedia", "AudioVideo", "applications-multimedia"));
+	m_subMenus.append(SubMenu(m_menu, "Games", "Game", "applications-games"));
+	m_subMenus.append(SubMenu(m_menu, "Network", "Network", "applications-internet"));
+	m_subMenus.append(SubMenu(m_menu, "System", "System", "preferences-system"));
+	m_subMenus.append(SubMenu(m_menu, "Settings", "Settings", "preferences-desktop"));
+	m_subMenus.append(SubMenu(m_menu, "Other", "Other", "applications-other"));
+
 	m_textItem = new TextGraphicsItem();
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_panelWindow->font());
@@ -57,6 +79,7 @@ ApplicationsMenuApplet::~ApplicationsMenuApplet()
 {
 	m_panelWindow->scene()->removeItem(m_textItem);
 	delete m_textItem;
+	delete m_menu;
 }
 
 bool ApplicationsMenuApplet::init()
@@ -70,94 +93,18 @@ QSize ApplicationsMenuApplet::desiredSize()
 	return QSize(m_textItem->boundingRect().size().width() + 16, m_textItem->boundingRect().size().height());
 }
 
-struct SubMenu
-{
-	QMenu* m_menu;
-	QString m_category;
-
-	SubMenu()
-	{
-	}
-
-	SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon)
-	{
-		m_menu = new QMenu(parent); // Will be deleted automatically.
-		m_menu->setTitle(title);
-		m_menu->setIcon(QIcon::fromTheme(icon));
-		m_menu->menuAction()->setIconVisibleInMenu(true);
-		m_category = category;
-	}
-};
-
 void ApplicationsMenuApplet::clicked()
 {
-	QMenu menu;
-	// Submenus.
-	QVector<SubMenu> subMenus;
-	subMenus.append(SubMenu(&menu, "Accessories", "Utility", "applications-accessories"));
-	subMenus.append(SubMenu(&menu, "Development", "Development", "applications-development"));
-	subMenus.append(SubMenu(&menu, "Education", "Education", "applications-science"));
-	subMenus.append(SubMenu(&menu, "Office", "Office", "applications-office"));
-	subMenus.append(SubMenu(&menu, "Graphics", "Graphics", "applications-graphics"));
-	subMenus.append(SubMenu(&menu, "Multimedia", "AudioVideo", "applications-multimedia"));
-	subMenus.append(SubMenu(&menu, "Games", "Game", "applications-games"));
-	subMenus.append(SubMenu(&menu, "Network", "Network", "applications-internet"));
-	subMenus.append(SubMenu(&menu, "System", "System", "preferences-system"));
-	subMenus.append(SubMenu(&menu, "Settings", "Settings", "preferences-desktop"));
-	subMenus.append(SubMenu(&menu, "Other", "Other", "applications-other"));
-
-	// Applications.
-	for(int i = 0; i < m_desktopFiles.size(); i++)
+	// Re-init submenus here to keep order stable.
+	m_menu->clear();
+	for(int i = 0; i < m_subMenus.size(); i++)
 	{
-		QAction* action = new QAction(&menu); // Will be deleted automatically.
-		action->setText(m_desktopFiles[i].name());
-		QIcon icon = QIcon::fromTheme(m_desktopFiles[i].icon());
-		if(icon.isNull())
-		{
-			if(m_desktopFiles[i].icon().contains('/'))
-				icon = QIcon(m_desktopFiles[i].icon());
-			else
-				icon = QIcon("/usr/share/pixmaps/" + m_desktopFiles[i].icon());
-		}
-		int iconSize = menu.style()->pixelMetric(QStyle::PM_SmallIconSize);
-		if(!icon.availableSizes().empty())
-		{
-			if(!icon.availableSizes().contains(QSize(iconSize, iconSize)))
-			{
-				QPixmap pixmap = icon.pixmap(256); // Any big size here is fine (at least for now).
-				QPixmap scaledPixmap = pixmap.scaled(QSize(iconSize, iconSize));
-				icon = QIcon(scaledPixmap);
-			}
-		}
-		action->setIcon(icon);
-		action->setIconVisibleInMenu(true);
-		action->setData(m_desktopFiles[i].exec());
-		connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
-
-		// Add to relevant menu.
-		bool subMenuFound = false;
-		for(int k = 0; k < subMenus.size() - 1; k++) // Without "Other".
-		{
-			if(m_desktopFiles[i].categories().contains(subMenus[k].m_category))
-			{
-				subMenus[k].m_menu->addAction(action);
-				subMenuFound = true;
-				break;
-			}
-		}
-		if(!subMenuFound)
-			subMenus[subMenus.size() - 1].m_menu->addAction(action); // Add to "Other" if no category matches.
+		if(m_subMenus[i].menu()->actions().size() > 0)
+			m_menu->addMenu(m_subMenus[i].menu());
 	}
 
-	// Add non-empty submenus.
-	for(int i = 0; i < subMenus.size(); i++)
-	{
-		if(subMenus[i].m_menu->actions().size() > 0)
-			menu.addMenu(subMenus[i].m_menu);
-	}
-
-	menu.move(localToScreen(QPoint(0, m_size.height())));
-	menu.exec();
+	m_menu->move(localToScreen(QPoint(0, m_size.height())));
+	m_menu->exec();
 }
 
 void ApplicationsMenuApplet::layoutChanged()
@@ -190,9 +137,7 @@ void ApplicationsMenuApplet::gatherDesktopFiles(const QString& path)
 	QStringList list = dir.entryList(QStringList("*.desktop"));
 	foreach(const QString& fileName, list)
 	{
-		DesktopFile file;
-		if(file.init(dir.path() + '/' + fileName))
-			m_desktopFiles.append(file);
+		desktopFileAdded(dir.path() + '/' + fileName);
 	}
 	// Traverse subdirectories recursively.
 	// Apparently, KDE keeps all it's programs in a subdirectory.
@@ -200,6 +145,53 @@ void ApplicationsMenuApplet::gatherDesktopFiles(const QString& path)
 	foreach(const QString& subDirName, subDirList)
 	{
 		gatherDesktopFiles(path + '/' + subDirName);
+	}
+}
+
+void ApplicationsMenuApplet::desktopFileAdded(const QString& fileName)
+{
+	DesktopFile desktopFile;
+	if(desktopFile.init(fileName))
+	{
+		m_desktopFiles[fileName] = desktopFile;
+
+		QAction* action = new QAction(m_menu); // Will be deleted automatically.
+		action->setText(desktopFile.name());
+		QIcon icon = QIcon::fromTheme(desktopFile.icon());
+		if(icon.isNull())
+		{
+			if(desktopFile.icon().contains('/'))
+				icon = QIcon(desktopFile.icon());
+			else
+				icon = QIcon("/usr/share/pixmaps/" + desktopFile.icon());
+		}
+		int iconSize = m_menu->style()->pixelMetric(QStyle::PM_SmallIconSize);
+		if(!icon.availableSizes().empty())
+		{
+			if(!icon.availableSizes().contains(QSize(iconSize, iconSize)))
+			{
+				QPixmap pixmap = icon.pixmap(256); // Any big size here is fine (at least for now).
+				QPixmap scaledPixmap = pixmap.scaled(QSize(iconSize, iconSize));
+				icon = QIcon(scaledPixmap);
+			}
+		}
+		action->setIcon(icon);
+		action->setIconVisibleInMenu(true);
+		action->setData(desktopFile.exec());
+		connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
+
+		// Add to relevant menu.
+		int subMenuIndex = m_subMenus.size() - 1; // By default put it in "Other".
+		for(int i = 0; i < m_subMenus.size() - 1; i++) // Without "Other".
+		{
+			if(desktopFile.categories().contains(m_subMenus[i].category()))
+			{
+				subMenuIndex = i;
+				break;
+			}
+		}
+		m_subMenus[subMenuIndex].menu()->addAction(action);
+		desktopFile.setAction(action);
 	}
 }
 

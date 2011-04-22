@@ -2,7 +2,8 @@
 #define APPLICATIONSMENUAPPLET_H
 
 #include <QtCore/QVector>
-#include <QtCore/QSet>
+#include <QtCore/QMap>
+#include <QtGui/QAction>
 #include "applet.h"
 
 class DesktopFile
@@ -30,11 +31,46 @@ public:
 		return m_categories;
 	}
 
+	void setAction(QAction* action)
+	{
+		m_action = action;
+	}
+
+	QAction* action()
+	{
+		return m_action;
+	}
+
 private:
 	QString m_name;
 	QString m_exec;
 	QString m_icon;
 	QStringList m_categories;
+	QAction* m_action;
+};
+
+class SubMenu
+{
+public:
+	SubMenu()
+	{
+	}
+
+	SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon);
+
+	QMenu* menu()
+	{
+		return m_menu;
+	}
+
+	const QString& category() const
+	{
+		return m_category;
+	}
+
+private:
+	QMenu* m_menu;
+	QString m_category;
 };
 
 class TextGraphicsItem;
@@ -59,9 +95,12 @@ private slots:
 private:
 	void updateDesktopFiles();
 	void gatherDesktopFiles(const QString& path);
+	void desktopFileAdded(const QString& fileName);
 
-	QVector<DesktopFile> m_desktopFiles;
 	TextGraphicsItem* m_textItem;
+	QMenu* m_menu;
+	QVector<SubMenu> m_subMenus;
+	QMap<QString, DesktopFile> m_desktopFiles;
 };
 
 #endif
