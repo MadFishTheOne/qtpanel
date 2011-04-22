@@ -4,7 +4,16 @@
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtGui/QAction>
+#include <QtGui/QPlastiqueStyle>
 #include "applet.h"
+
+class ApplicationsMenuStyle: public QPlastiqueStyle
+{
+	Q_OBJECT
+public:
+	int pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const;
+	QSize sizeFromContents(ContentsType type, const QStyleOption* option, const QSize& contentsSize, const QWidget* widget) const;
+};
 
 class DesktopFile
 {
@@ -97,6 +106,7 @@ private:
 	void gatherDesktopFiles(const QString& path);
 	void desktopFileAdded(const QString& fileName);
 
+	ApplicationsMenuStyle m_style;
 	TextGraphicsItem* m_textItem;
 	QMenu* m_menu;
 	QVector<SubMenu> m_subMenus;
