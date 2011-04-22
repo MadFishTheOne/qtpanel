@@ -67,6 +67,19 @@ QVector<unsigned long> X11Support::getWindowPropertyWindowsArray(unsigned long w
 	return values;
 }
 
+QVector<unsigned long> X11Support::getWindowPropertyAtomsArray(unsigned long window, const QString& name)
+{
+	int numItems;
+	unsigned long* data;
+	QVector<unsigned long> values;
+	if(!getWindowPropertyHelper(window, atom(name), XA_ATOM, numItems, data))
+		return values;
+	for(int i = 0; i < numItems; i++)
+		values.append(data[i]);
+	XFree(data);
+	return values;
+}
+
 QString X11Support::getWindowPropertyUTF8String(unsigned long window, const QString& name)
 {
 	int numItems;

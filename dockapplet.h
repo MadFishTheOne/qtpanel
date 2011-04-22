@@ -22,11 +22,18 @@ public:
 	// destruction will happen later.
 	void removed();
 
+	bool isVisible()
+	{
+		return m_visible;
+	}
+
 	QSize desiredSize();
 	void setPosition(const QPoint& position);
 	void setSize(const QSize& size);
 
 	void updateLayout();
+	void updateName();
+	void updateVisibility();
 
 private:
 	DockApplet* m_dockApplet;
@@ -34,6 +41,7 @@ private:
 	QString m_name;
 	TextGraphicsItem* m_textItem;
 	QSize m_size;
+	bool m_visible;
 };
 
 class DockApplet: public Applet

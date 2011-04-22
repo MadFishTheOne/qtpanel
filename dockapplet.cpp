@@ -11,9 +11,11 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 {
 	m_dockApplet = dockApplet;
 	m_handle = handle;
-	m_name = X11Support::instance()->getWindowName(m_handle);
 
-	m_textItem = new TextGraphicsItem(m_dockApplet->appletItem());
+	updateName();
+	updateVisibility();
+
+	m_textItem = new TextGraphicsItem();
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_dockApplet->panelWindow()->font());
 
@@ -54,9 +56,31 @@ void Client::setSize(const QSize& size)
 
 void Client::updateLayout()
 {
+	if(!m_visible)
+	{
+		m_textItem->setParentItem(NULL);
+		return;
+	}
+
+	m_textItem->setParentItem(m_dockApplet->appletItem());
+
 	QFontMetrics fontMetrics(m_textItem->font());
 	QString shortName = fontMetrics.elidedText(m_name, Qt::ElideRight, m_size.width());
 	m_textItem->setText(shortName);
+}
+
+void Client::updateName()
+{
+	m_name = X11Support::instance()->getWindowName(m_handle);
+}
+
+void Client::updateVisibility()
+{
+	QVector<unsigned long> windowTypes = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
+	m_visible = windowTypes.contains(X11Support::instance()->atom("_NET_WM_WINDOW_TYPE_NORMAL"));
+	QVector<unsigned long> windowStates = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
+	if(windowStates.contains(X11Support::instance()->atom("_NET_WM_STATE_SKIP_TASKBAR")))
+		m_visible = false;
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)
@@ -81,11 +105,22 @@ bool DockApplet::init()
 void DockApplet::updateLayout()
 {
 	// TODO: Vertical orientation support.
+
+	int numVisibleClients = 0;
+	for(int i = 0; i < m_clients.size(); i++)
+	{
+		if(m_clients[i]->isVisible())
+			numVisibleClients++;
+	}
+
 	int freeSpace = m_size.width();
-	int spaceForOneClient = (m_clients.size() > 0) ? freeSpace/m_clients.size() : 0;
+	int spaceForOneClient = (numVisibleClients > 0) ? freeSpace/numVisibleClients : 0;
 	int currentPosition = 0;
 	for(int i = 0; i < m_clients.size(); i++)
 	{
+		if(!m_clients[i]->isVisible())
+			continue;
+
 		int spaceForThisClient = spaceForOneClient;
 		if(m_clients[i]->desiredSize().width() < spaceForThisClient)
 			spaceForThisClient = m_clients[i]->desiredSize().width();
