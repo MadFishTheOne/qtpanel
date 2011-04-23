@@ -2,6 +2,7 @@
 #define DOCKAPPLET_H
 
 #include <QtCore/QVector>
+#include <QtCore/QMap>
 #include <QtGui/QIcon>
 #include <QtGui/QGraphicsItem>
 #include "applet.h"
@@ -9,21 +10,61 @@
 class QGraphicsPixmapItem;
 class TextGraphicsItem;
 class DockApplet;
+class DockItem;
 class Client;
 
-class ClientGraphicsItem: public QGraphicsItem
+class DockItemGraphicsItem: public QGraphicsItem
 {
 public:
-	ClientGraphicsItem(Client* client);
-	~ClientGraphicsItem();
+	DockItemGraphicsItem(DockItem* dockItem);
+	~DockItemGraphicsItem();
 
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 private:
-	Client* m_client;
+	DockItem* m_dockItem;
 };
 
+// Represents a single item in a dock.
+// There isn't one to one relationship between window (client) and dock item, that's why
+// it's separate entity. One dock item can represent pinned launcher and one or more opened
+// windows of that application.
+class DockItem
+{
+public:
+	DockItem(DockApplet* dockApplet);
+	~DockItem();
+
+	void update();
+
+	void addClient(Client* client);
+	void removeClient(Client* client);
+
+	void setPosition(const QPoint& position);
+	void setSize(const QSize& size);
+
+	const QSize& size() const
+	{
+		return m_size;
+	}
+
+	const QVector<Client*>& clients() const
+	{
+		return m_clients;
+	}
+
+private:
+	DockApplet* m_dockApplet;
+	DockItemGraphicsItem* m_graphicsItem;
+	TextGraphicsItem* m_textItem;
+	QGraphicsPixmapItem* m_iconItem;
+	QVector<Client*> m_clients;
+	QSize m_size;
+};
+
+// Used for tracking connected windows (X11 clients).
+// Client may have it's DockItem, but not necessary (for example, special windows are not shown in dock).
 class Client
 {
 public:
@@ -35,41 +76,32 @@ public:
 		return m_handle;
 	}
 
-	// Separate from destructor, as we would like to animate removal, so actual
-	// destruction will happen later.
-	void removed();
-
 	bool isVisible()
 	{
 		return m_visible;
 	}
 
-	QSize desiredSize();
-	void setPosition(const QPoint& position);
-	void setSize(const QSize& size);
-
-	const QSize& size() const
+	const QString& name() const
 	{
-		return m_size;
+		return m_name;
 	}
 
-	void updateLayout();
+	const QIcon& icon() const
+	{
+		return m_icon;
+	}
 
 private:
-	void updateName();
 	void updateVisibility();
+	void updateName();
 	void updateIcon();
-	void updateTextItem();
 
 	DockApplet* m_dockApplet;
-	ClientGraphicsItem* m_clientItem;
 	unsigned long m_handle;
 	QString m_name;
 	QIcon m_icon;
-	TextGraphicsItem* m_textItem;
-	QGraphicsPixmapItem* m_iconItem;
-	QSize m_size;
 	bool m_visible;
+	DockItem* m_dockItem;
 };
 
 class DockApplet: public Applet
@@ -82,8 +114,10 @@ public:
 	bool init();
 	QSize desiredSize();
 
-	void registerClient(Client* client);
-	void unregisterClient(Client* client);
+	void registerDockItem(DockItem* dockItem);
+	void unregisterDockItem(DockItem* dockItem);
+
+	DockItem* dockItemForClient(Client* client);
 
 	void updateLayout();
 
@@ -94,7 +128,8 @@ private slots:
 	void clientListChanged();
 
 private:
-	QVector<Client*> m_clients;
+	QMap<unsigned long, Client*> m_clients;
+	QVector<DockItem*> m_dockItems;
 };
 
 #endif

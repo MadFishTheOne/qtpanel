@@ -8,26 +8,24 @@
 #include "panelwindow.h"
 #include "x11support.h"
 
-ClientGraphicsItem::ClientGraphicsItem(Client* client)
-	: m_client(client)
+DockItemGraphicsItem::DockItemGraphicsItem(DockItem* dockItem)
+	: m_dockItem(dockItem)
 {
-
 }
 
-ClientGraphicsItem::~ClientGraphicsItem()
+DockItemGraphicsItem::~DockItemGraphicsItem()
 {
-
 }
 
-QRectF ClientGraphicsItem::boundingRect() const
+QRectF DockItemGraphicsItem::boundingRect() const
 {
-	return QRectF(0.0, 0.0, m_client->size().width() - 1, m_client->size().height() - 1);
+	return QRectF(0.0, 0.0, m_dockItem->size().width() - 1, m_dockItem->size().height() - 1);
 }
 
-void ClientGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void DockItemGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->setPen(Qt::NoPen);
-	QPointF center(m_client->size().width()/2.0, m_client->size().height() + 32.0);
+	QPointF center(m_dockItem->size().width()/2.0, m_dockItem->size().height() + 32.0);
 	QRadialGradient gradient(center, 200.0, center);
 	gradient.setColorAt(0, QColor(255, 255, 255, 80));
 	gradient.setColorAt(1, QColor(255, 255, 255, 0));
@@ -35,72 +33,93 @@ void ClientGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem
 	painter->drawRoundedRect(boundingRect(), 3.0, 3.0);
 }
 
+DockItem::DockItem(DockApplet* dockApplet)
+{
+	m_dockApplet = dockApplet;
+
+	m_graphicsItem = new DockItemGraphicsItem(this);
+	m_graphicsItem->setParentItem(m_dockApplet->appletItem());
+
+	m_textItem = new TextGraphicsItem(m_graphicsItem);
+	m_textItem->setColor(Qt::white);
+	m_textItem->setFont(m_dockApplet->panelWindow()->font());
+
+	m_iconItem = new QGraphicsPixmapItem(m_graphicsItem);
+
+	m_dockApplet->registerDockItem(this);
+}
+
+DockItem::~DockItem()
+{
+	delete m_iconItem;
+	delete m_textItem;
+	delete m_graphicsItem;
+
+	m_dockApplet->unregisterDockItem(this);
+}
+
+void DockItem::update()
+{
+	if(m_clients.isEmpty())
+		return;
+
+	QFontMetrics fontMetrics(m_textItem->font());
+	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_size.width() - 36);
+	m_textItem->setText(shortName);
+	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine() - 4.0);
+
+	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(16));
+	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
+}
+
+void DockItem::addClient(Client* client)
+{
+	m_clients.append(client);
+	update();
+}
+
+void DockItem::removeClient(Client* client)
+{
+	m_clients.remove(m_clients.indexOf(client));
+	if(m_clients.isEmpty())
+	{
+		// TODO: Stub. Item may be a launcher.
+		delete this;
+	}
+	else
+	{
+		update();
+	}
+}
+
+void DockItem::setPosition(const QPoint& position)
+{
+	m_graphicsItem->setPos(position.x(), position.y());
+}
+
+void DockItem::setSize(const QSize& size)
+{
+	m_size = size;
+	update();
+}
+
 Client::Client(DockApplet* dockApplet, unsigned long handle)
+	: m_dockItem(NULL)
 {
 	m_dockApplet = dockApplet;
 	m_handle = handle;
 
-	m_clientItem = new ClientGraphicsItem(this);
-
-	m_textItem = new TextGraphicsItem(m_clientItem);
-	m_textItem->setColor(Qt::white);
-	m_textItem->setFont(m_dockApplet->panelWindow()->font());
-
-	m_iconItem = new QGraphicsPixmapItem(m_clientItem);
-
-	updateName();
 	updateVisibility();
+	updateName();
 	updateIcon();
-
-	m_dockApplet->registerClient(this);
-	m_dockApplet->updateLayout();
 }
 
 Client::~Client()
 {
-	delete m_iconItem;
-	delete m_textItem;
-	delete m_clientItem;
-
-	m_dockApplet->unregisterClient(this);
-	m_dockApplet->updateLayout();
-}
-
-void Client::removed()
-{
-	// Call destructor for now.
-	// TODO: Animations.
-	delete this;
-}
-
-QSize Client::desiredSize()
-{
-	return QSize(256, 256); // TODO: Make it configurable;
-}
-
-void Client::setPosition(const QPoint& position)
-{
-	m_clientItem->setPos(position.x(), position.y());
-}
-
-void Client::setSize(const QSize& size)
-{
-	m_size = size;
-	updateLayout();
-}
-
-void Client::updateLayout()
-{
-	updateTextItem();
-
-	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine() - 4.0);
-	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
-}
-
-void Client::updateName()
-{
-	m_name = X11Support::instance()->getWindowName(m_handle);
-	updateTextItem();
+	if(m_dockItem != NULL)
+	{
+		m_dockItem->removeClient(this);
+	}
 }
 
 void Client::updateVisibility()
@@ -111,23 +130,31 @@ void Client::updateVisibility()
 	if(windowStates.contains(X11Support::instance()->atom("_NET_WM_STATE_SKIP_TASKBAR")))
 		m_visible = false;
 
-	if(m_visible)
-		m_clientItem->setParentItem(m_dockApplet->appletItem());
-	else
-		m_clientItem->setParentItem(NULL);
+	if(m_dockItem == NULL && m_visible)
+	{
+		m_dockItem = m_dockApplet->dockItemForClient(this);
+		m_dockItem->addClient(this);
+	}
+
+	if(m_dockItem != NULL && !m_visible)
+	{
+		m_dockItem->removeClient(this);
+		m_dockItem = NULL;
+	}
+}
+
+void Client::updateName()
+{
+	m_name = X11Support::instance()->getWindowName(m_handle);
+	if(m_dockItem != NULL)
+		m_dockItem->update();
 }
 
 void Client::updateIcon()
 {
 	m_icon = X11Support::instance()->getWindowIcon(m_handle);
-	m_iconItem->setPixmap(m_icon.pixmap(16));
-}
-
-void Client::updateTextItem()
-{
-	QFontMetrics fontMetrics(m_textItem->font());
-	QString shortName = fontMetrics.elidedText(m_name, Qt::ElideRight, m_size.width() - 36);
-	m_textItem->setText(shortName);
+	if(m_dockItem != NULL)
+		m_dockItem->update();
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)
@@ -153,26 +180,16 @@ void DockApplet::updateLayout()
 {
 	// TODO: Vertical orientation support.
 
-	int numVisibleClients = 0;
-	for(int i = 0; i < m_clients.size(); i++)
-	{
-		if(m_clients[i]->isVisible())
-			numVisibleClients++;
-	}
-
 	int freeSpace = m_size.width() - 8;
-	int spaceForOneClient = (numVisibleClients > 0) ? freeSpace/numVisibleClients : 0;
+	int spaceForOneClient = (m_dockItems.size() > 0) ? freeSpace/m_dockItems.size() : 0;
 	int currentPosition = 4;
-	for(int i = 0; i < m_clients.size(); i++)
+	for(int i = 0; i < m_dockItems.size(); i++)
 	{
-		if(!m_clients[i]->isVisible())
-			continue;
-
 		int spaceForThisClient = spaceForOneClient;
-		if(m_clients[i]->desiredSize().width() < spaceForThisClient)
-			spaceForThisClient = m_clients[i]->desiredSize().width();
-		m_clients[i]->setPosition(QPoint(currentPosition, 4));
-		m_clients[i]->setSize(QSize(spaceForThisClient - 4, m_size.height() - 8));
+		if(spaceForThisClient > 256)
+			spaceForThisClient = 256;
+		m_dockItems[i]->setPosition(QPoint(currentPosition, 4));
+		m_dockItems[i]->setSize(QSize(spaceForThisClient - 4, m_size.height() - 8));
 		currentPosition += spaceForThisClient;
 	}
 
@@ -189,14 +206,22 @@ QSize DockApplet::desiredSize()
 	return QSize(-1, -1); // Take all available space.
 }
 
-void DockApplet::registerClient(Client* client)
+void DockApplet::registerDockItem(DockItem* dockItem)
 {
-	m_clients.append(client);
+	m_dockItems.append(dockItem);
+	updateLayout();
 }
 
-void DockApplet::unregisterClient(Client* client)
+void DockApplet::unregisterDockItem(DockItem* dockItem)
 {
-	m_clients.remove(m_clients.indexOf(client));
+	m_dockItems.remove(m_dockItems.indexOf(dockItem));
+	updateLayout();
+}
+
+DockItem* DockApplet::dockItemForClient(Client* client)
+{
+	// FIXME: Stub.
+	return new DockItem(this);
 }
 
 void DockApplet::clientListChanged()
@@ -206,38 +231,28 @@ void DockApplet::clientListChanged()
 	// Handle new clients.
 	for(int i = 0; i < windows.size(); i++)
 	{
-		bool found = false;
-		for(int k = 0; k < m_clients.size(); k++)
+		if(!m_clients.contains(windows[i]))
 		{
-			if(m_clients[k]->handle() == windows[i])
-			{
-				found = true;
-				break;
-			}
-		}
-
-		if(!found)
-		{
-			Client* client = new Client(this, windows[i]);
+			m_clients[windows[i]] = new Client(this, windows[i]);
 		}
 	}
 
 	// Handle removed clients.
-	for(int i = 0; i < m_clients.size(); i++)
+	for(;;)
 	{
-		bool found = false;
-		for(int k = 0; k < windows.size(); k++)
+		bool clientRemoved = false;
+		foreach(Client* client, m_clients)
 		{
-			if(m_clients[i]->handle() == windows[k])
+			int handle = client->handle();
+			if(!windows.contains(handle))
 			{
-				found = true;
+				delete m_clients[handle];
+				m_clients.remove(handle);
+				clientRemoved = true;
 				break;
 			}
 		}
-
-		if(!found)
-		{
-			m_clients[i]->removed();
-		}
+		if(!clientRemoved)
+			break;
 	}
 }
