@@ -43,6 +43,8 @@ void DockItem::updateContent()
 
 	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(16));
 	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
+
+	update();
 }
 
 void DockItem::addClient(Client* client)
@@ -142,14 +144,14 @@ void Client::updateName()
 {
 	m_name = X11Support::instance()->getWindowName(m_handle);
 	if(m_dockItem != NULL)
-		m_dockItem->update();
+		m_dockItem->updateContent();
 }
 
 void Client::updateIcon()
 {
 	m_icon = X11Support::instance()->getWindowIcon(m_handle);
 	if(m_dockItem != NULL)
-		m_dockItem->update();
+		m_dockItem->updateContent();
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)
