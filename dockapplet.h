@@ -16,8 +16,10 @@ class Client;
 // There isn't one to one relationship between window (client) and dock item, that's why
 // it's separate entity. One dock item can represent pinned launcher and one or more opened
 // windows of that application.
-class DockItem: public QGraphicsItem
+class DockItem: public QObject, public QGraphicsItem
 {
+	Q_OBJECT
+	Q_INTERFACES(QGraphicsItem)
 public:
 	DockItem(DockApplet* dockApplet);
 	~DockItem();
@@ -38,12 +40,22 @@ public:
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+public slots:
+	void animateHighlight();
+
+protected:
+	void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+	void mousePressEvent(QGraphicsSceneMouseEvent* event);
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+
 private:
 	DockApplet* m_dockApplet;
 	TextGraphicsItem* m_textItem;
 	QGraphicsPixmapItem* m_iconItem;
 	QVector<Client*> m_clients;
 	QSize m_size;
+	qreal m_highlightIntensity;
 };
 
 // Used for tracking connected windows (X11 clients).

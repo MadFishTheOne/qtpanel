@@ -69,7 +69,7 @@ void Applet::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
 
 void Applet::animateHighlight()
 {
-	static const qreal highlightAnimationSpeed = 0.1;
+	static const qreal highlightAnimationSpeed = 0.15;
 	if(isHighlighted())
 	{
 		m_highlightIntensity += highlightAnimationSpeed;

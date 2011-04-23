@@ -1,5 +1,6 @@
 #include "dockapplet.h"
 
+#include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QGraphicsScene>
@@ -12,7 +13,9 @@ DockItem::DockItem(DockApplet* dockApplet)
 {
 	m_dockApplet = dockApplet;
 
-	this->setParentItem(m_dockApplet);
+	setParentItem(m_dockApplet);
+	setAcceptsHoverEvents(true);
+	setAcceptedMouseButtons(Qt::LeftButton);
 
 	m_textItem = new TextGraphicsItem(this);
 	m_textItem->setColor(Qt::white);
@@ -39,7 +42,7 @@ void DockItem::updateContent()
 	QFontMetrics fontMetrics(m_textItem->font());
 	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_size.width() - 36);
 	m_textItem->setText(shortName);
-	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine() - 4.0);
+	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine());
 
 	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(16));
 	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
@@ -88,10 +91,50 @@ void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	painter->setPen(Qt::NoPen);
 	QPointF center(m_size.width()/2.0, m_size.height() + 32.0);
 	QRadialGradient gradient(center, 200.0, center);
-	gradient.setColorAt(0, QColor(255, 255, 255, 80));
+	gradient.setColorAt(0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
 	gradient.setColorAt(1, QColor(255, 255, 255, 0));
 	painter->setBrush(QBrush(gradient));
-	painter->drawRoundedRect(boundingRect(), 3.0, 3.0);
+	painter->drawRoundedRect(QRectF(0.0, 4.0, m_size.width(), m_size.height() - 8.0), 3.0, 3.0);
+}
+
+void DockItem::animateHighlight()
+{
+	static const qreal highlightAnimationSpeed = 0.15;
+	if(isUnderMouse())
+	{
+		m_highlightIntensity += highlightAnimationSpeed;
+		if(m_highlightIntensity > 1.0)
+			m_highlightIntensity = 1.0;
+		else
+			QTimer::singleShot(20, this, SLOT(animateHighlight()));
+	}
+	else
+	{
+		m_highlightIntensity -= highlightAnimationSpeed;
+		if(m_highlightIntensity < 0.0)
+			m_highlightIntensity = 0.0;
+		else
+			QTimer::singleShot(20, this, SLOT(animateHighlight()));
+	}
+	update();
+}
+
+void DockItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+	animateHighlight();
+}
+
+void DockItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+	animateHighlight();
+}
+
+void DockItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+}
+
+void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
 }
 
 Client::Client(DockApplet* dockApplet, unsigned long handle)
@@ -185,8 +228,8 @@ void DockApplet::updateLayout()
 		int spaceForThisClient = spaceForOneClient;
 		if(spaceForThisClient > 256)
 			spaceForThisClient = 256;
-		m_dockItems[i]->setPosition(QPoint(currentPosition, 4));
-		m_dockItems[i]->setSize(QSize(spaceForThisClient - 4, m_size.height() - 8));
+		m_dockItems[i]->setPosition(QPoint(currentPosition, 0));
+		m_dockItems[i]->setSize(QSize(spaceForThisClient - 4, m_size.height()));
 		currentPosition += spaceForThisClient;
 	}
 
