@@ -7,7 +7,7 @@
 DemoApplet::DemoApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
-	m_rectItem = new QGraphicsRectItem(m_appletItem);
+	m_rectItem = new QGraphicsRectItem(this);
 	m_rectItem->setPen(QPen(Qt::NoPen));
 	m_rectItem->setBrush(QBrush(Qt::blue));
 }

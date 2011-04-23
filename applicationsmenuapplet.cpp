@@ -91,7 +91,7 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	m_subMenus.append(SubMenu(m_menu, "Settings", "Settings", "preferences-desktop"));
 	m_subMenus.append(SubMenu(m_menu, "Other", "Other", "applications-other"));
 
-	m_textItem = new TextGraphicsItem(m_appletItem);
+	m_textItem = new TextGraphicsItem(this);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_panelWindow->font());
 	m_textItem->setText("Applications");

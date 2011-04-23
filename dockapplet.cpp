@@ -8,43 +8,17 @@
 #include "panelwindow.h"
 #include "x11support.h"
 
-DockItemGraphicsItem::DockItemGraphicsItem(DockItem* dockItem)
-	: m_dockItem(dockItem)
-{
-}
-
-DockItemGraphicsItem::~DockItemGraphicsItem()
-{
-}
-
-QRectF DockItemGraphicsItem::boundingRect() const
-{
-	return QRectF(0.0, 0.0, m_dockItem->size().width() - 1, m_dockItem->size().height() - 1);
-}
-
-void DockItemGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-	painter->setPen(Qt::NoPen);
-	QPointF center(m_dockItem->size().width()/2.0, m_dockItem->size().height() + 32.0);
-	QRadialGradient gradient(center, 200.0, center);
-	gradient.setColorAt(0, QColor(255, 255, 255, 80));
-	gradient.setColorAt(1, QColor(255, 255, 255, 0));
-	painter->setBrush(QBrush(gradient));
-	painter->drawRoundedRect(boundingRect(), 3.0, 3.0);
-}
-
 DockItem::DockItem(DockApplet* dockApplet)
 {
 	m_dockApplet = dockApplet;
 
-	m_graphicsItem = new DockItemGraphicsItem(this);
-	m_graphicsItem->setParentItem(m_dockApplet->appletItem());
+	this->setParentItem(m_dockApplet);
 
-	m_textItem = new TextGraphicsItem(m_graphicsItem);
+	m_textItem = new TextGraphicsItem(this);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_dockApplet->panelWindow()->font());
 
-	m_iconItem = new QGraphicsPixmapItem(m_graphicsItem);
+	m_iconItem = new QGraphicsPixmapItem(this);
 
 	m_dockApplet->registerDockItem(this);
 }
@@ -53,12 +27,11 @@ DockItem::~DockItem()
 {
 	delete m_iconItem;
 	delete m_textItem;
-	delete m_graphicsItem;
 
 	m_dockApplet->unregisterDockItem(this);
 }
 
-void DockItem::update()
+void DockItem::updateContent()
 {
 	if(m_clients.isEmpty())
 		return;
@@ -75,7 +48,7 @@ void DockItem::update()
 void DockItem::addClient(Client* client)
 {
 	m_clients.append(client);
-	update();
+	updateContent();
 }
 
 void DockItem::removeClient(Client* client)
@@ -88,19 +61,35 @@ void DockItem::removeClient(Client* client)
 	}
 	else
 	{
-		update();
+		updateContent();
 	}
 }
 
 void DockItem::setPosition(const QPoint& position)
 {
-	m_graphicsItem->setPos(position.x(), position.y());
+	setPos(position.x(), position.y());
 }
 
 void DockItem::setSize(const QSize& size)
 {
 	m_size = size;
-	update();
+	updateContent();
+}
+
+QRectF DockItem::boundingRect() const
+{
+	return QRectF(0.0, 0.0, m_size.width() - 1, m_size.height() - 1);
+}
+
+void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+	painter->setPen(Qt::NoPen);
+	QPointF center(m_size.width()/2.0, m_size.height() + 32.0);
+	QRadialGradient gradient(center, 200.0, center);
+	gradient.setColorAt(0, QColor(255, 255, 255, 80));
+	gradient.setColorAt(1, QColor(255, 255, 255, 0));
+	painter->setBrush(QBrush(gradient));
+	painter->drawRoundedRect(boundingRect(), 3.0, 3.0);
 }
 
 Client::Client(DockApplet* dockApplet, unsigned long handle)
@@ -199,7 +188,7 @@ void DockApplet::updateLayout()
 		currentPosition += spaceForThisClient;
 	}
 
-	m_appletItem->update();
+	update();
 }
 
 void DockApplet::layoutChanged()

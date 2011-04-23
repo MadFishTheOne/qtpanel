@@ -10,33 +10,19 @@
 class QGraphicsPixmapItem;
 class TextGraphicsItem;
 class DockApplet;
-class DockItem;
 class Client;
-
-class DockItemGraphicsItem: public QGraphicsItem
-{
-public:
-	DockItemGraphicsItem(DockItem* dockItem);
-	~DockItemGraphicsItem();
-
-	QRectF boundingRect() const;
-	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
-
-private:
-	DockItem* m_dockItem;
-};
 
 // Represents a single item in a dock.
 // There isn't one to one relationship between window (client) and dock item, that's why
 // it's separate entity. One dock item can represent pinned launcher and one or more opened
 // windows of that application.
-class DockItem
+class DockItem: public QGraphicsItem
 {
 public:
 	DockItem(DockApplet* dockApplet);
 	~DockItem();
 
-	void update();
+	void updateContent();
 
 	void addClient(Client* client);
 	void removeClient(Client* client);
@@ -44,19 +30,16 @@ public:
 	void setPosition(const QPoint& position);
 	void setSize(const QSize& size);
 
-	const QSize& size() const
-	{
-		return m_size;
-	}
-
 	const QVector<Client*>& clients() const
 	{
 		return m_clients;
 	}
 
+	QRectF boundingRect() const;
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+
 private:
 	DockApplet* m_dockApplet;
-	DockItemGraphicsItem* m_graphicsItem;
 	TextGraphicsItem* m_textItem;
 	QGraphicsPixmapItem* m_iconItem;
 	QVector<Client*> m_clients;

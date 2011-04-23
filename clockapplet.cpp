@@ -12,7 +12,7 @@ ClockApplet::ClockApplet(PanelWindow* panelWindow)
 	m_timer = new QTimer();
 	m_timer->setSingleShot(true);
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
-	m_textItem = new TextGraphicsItem(m_appletItem);
+	m_textItem = new TextGraphicsItem(this);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_panelWindow->font());
 }
