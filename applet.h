@@ -60,6 +60,8 @@ public:
 		return m_appletItem;
 	}
 
+	void setInteractive(bool interactive);
+
 public slots:
 	virtual void clicked();
 

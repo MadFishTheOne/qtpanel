@@ -73,6 +73,8 @@ SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, c
 ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
+	setInteractive(true);
+
 	m_menu = new QMenu();
 	m_menu->setStyle(&m_style);
 	m_menu->setFont(m_panelWindow->font());

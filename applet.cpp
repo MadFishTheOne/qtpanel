@@ -10,8 +10,6 @@ AppletGraphicsItem::AppletGraphicsItem(Applet* applet)
 	: m_applet(applet), m_highlightIntensity(0.0)
 {
 	setZValue(-1.0);
-	setAcceptsHoverEvents(true);
-	setAcceptedMouseButtons(Qt::LeftButton);
 }
 
 AppletGraphicsItem::~AppletGraphicsItem()
@@ -86,6 +84,20 @@ void Applet::setSize(const QSize& size)
 {
 	m_size = size;
 	layoutChanged();
+}
+
+void Applet::setInteractive(bool interactive)
+{
+	if(interactive)
+	{
+		m_appletItem->setAcceptsHoverEvents(true);
+		m_appletItem->setAcceptedMouseButtons(Qt::LeftButton);
+	}
+	else
+	{
+		m_appletItem->setAcceptsHoverEvents(false);
+		m_appletItem->setAcceptedMouseButtons(Qt::NoButton);
+	}
 }
 
 void Applet::clicked()
