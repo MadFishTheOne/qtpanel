@@ -97,6 +97,7 @@ public:
 
 protected:
 	void layoutChanged();
+	bool isHighlighted();
 
 private slots:
 	void actionTriggered();
@@ -108,6 +109,7 @@ private:
 
 	ApplicationsMenuStyle m_style;
 	TextGraphicsItem* m_textItem;
+	bool m_menuOpened;
 	QMenu* m_menu;
 	QVector<SubMenu> m_subMenus;
 	QMap<QString, DesktopFile> m_desktopFiles;

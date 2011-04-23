@@ -71,7 +71,7 @@ SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, c
 }
 
 ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
-	: Applet(panelWindow)
+	: Applet(panelWindow), m_menuOpened(false)
 {
 	setInteractive(true);
 
@@ -116,6 +116,9 @@ QSize ApplicationsMenuApplet::desiredSize()
 
 void ApplicationsMenuApplet::clicked()
 {
+	m_menuOpened = true;
+	animateHighlight();
+
 	// Re-init submenus here to keep order stable.
 	m_menu->clear();
 	for(int i = 0; i < m_subMenus.size(); i++)
@@ -126,11 +129,19 @@ void ApplicationsMenuApplet::clicked()
 
 	m_menu->move(localToScreen(QPoint(0, m_size.height())));
 	m_menu->exec();
+
+	m_menuOpened = false;
+	animateHighlight();
 }
 
 void ApplicationsMenuApplet::layoutChanged()
 {
 	m_textItem->setPos(8, m_panelWindow->textBaseLine());
+}
+
+bool ApplicationsMenuApplet::isHighlighted()
+{
+	return m_menuOpened || Applet::isHighlighted();
 }
 
 void ApplicationsMenuApplet::actionTriggered()

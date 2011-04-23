@@ -9,6 +9,8 @@
 ClockApplet::ClockApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
+	setInteractive(true);
+
 	m_timer = new QTimer();
 	m_timer->setSingleShot(true);
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));

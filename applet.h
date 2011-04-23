@@ -34,11 +34,14 @@ public:
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 public slots:
+	void animateHighlight();
 	virtual void clicked();
 
 protected:
 	virtual void layoutChanged();
 	QPoint localToScreen(const QPoint& point);
+
+	virtual bool isHighlighted();
 
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
