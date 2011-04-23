@@ -135,13 +135,25 @@ void ApplicationsMenuApplet::actionTriggered()
 {
 	QString exec = static_cast<QAction*>(sender())->data().toString();
 
-	// Don't need arguments from desktop file here.
-	int spacePos = exec.indexOf(' ');
-	if(spacePos != -1)
-		exec.resize(spacePos);
+	// Handle special arguments.
+	for(;;)
+	{
+		int argPos = exec.indexOf('%');
+		if(argPos == -1)
+			break;
+		// For now, just remove them.
+		int spacePos = exec.indexOf(' ', argPos);
+		if(spacePos == -1)
+			exec.resize(argPos);
+		else
+			exec.remove(argPos, spacePos - argPos);
+	}
 
-	QProcess process;
-	process.startDetached(exec);
+	exec = exec.trimmed();
+	QStringList args = exec.split(' ');
+	QString process = args[0];
+	args.removeAt(0);
+	QProcess::startDetached(process, args, getenv("HOME"));
 }
 
 void ApplicationsMenuApplet::updateDesktopFiles()
