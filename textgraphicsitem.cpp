@@ -38,7 +38,9 @@ QRectF TextGraphicsItem::boundingRect() const
 
 void TextGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	painter->setPen(QPen(m_color));
 	painter->setFont(m_font);
+	painter->setPen(QPen(Qt::black));
+	painter->drawText(1, 1, m_text);
+	painter->setPen(QPen(m_color));
 	painter->drawText(0, 0, m_text);
 }

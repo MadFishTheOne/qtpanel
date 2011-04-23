@@ -63,6 +63,7 @@ SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, c
 {
 	m_menu = new QMenu(parent); // Will be deleted automatically.
 	m_menu->setStyle(parent->style());
+	m_menu->setFont(parent->font());
 	m_menu->setTitle(title);
 	m_menu->setIcon(QIcon::fromTheme(icon));
 	m_menu->menuAction()->setIconVisibleInMenu(true);
@@ -74,6 +75,7 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 {
 	m_menu = new QMenu();
 	m_menu->setStyle(&m_style);
+	m_menu->setFont(m_panelWindow->font());
 	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { background-color: transparent; color: white; padding-left: 38px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
 	m_subMenus.append(SubMenu(m_menu, "Accessories", "Utility", "applications-accessories"));
 	m_subMenus.append(SubMenu(m_menu, "Development", "Development", "applications-development"));

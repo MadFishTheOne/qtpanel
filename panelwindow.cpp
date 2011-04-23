@@ -60,7 +60,7 @@ PanelWindow::PanelWindow()
 	setAttribute(Qt::WA_TranslucentBackground);
 
 	// TODO: Make this configurable.
-	m_font = QFont("Droid Sans", 12);
+	m_font = QFont("Droid Sans", 11);
 
 	m_scene = new QGraphicsScene();
 	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
@@ -72,7 +72,7 @@ PanelWindow::PanelWindow()
 	m_view->setStyleSheet("border-style: none;");
 	m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	//m_view->setRenderHint(QPainter::Antialiasing);
+	m_view->setRenderHint(QPainter::Antialiasing);
 	m_view->move(0, 0);
 
 	m_applets.append(new ApplicationsMenuApplet(this));

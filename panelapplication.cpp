@@ -28,7 +28,7 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 	m_x11support = new X11Support();
 
 	m_panelWindow = new PanelWindow();
-	m_panelWindow->resize(128, 30);
+	m_panelWindow->resize(128, 32);
 	m_panelWindow->setLayoutPolicy(PanelWindow::FillSpace);
 	//m_panelWindow->setVerticalAnchor(PanelWindow::Max);
 	m_panelWindow->setDockMode(true);
