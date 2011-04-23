@@ -50,6 +50,8 @@ protected:
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
 
 private:
+	void updateClientsIconGeometry();
+
 	DockApplet* m_dockApplet;
 	TextGraphicsItem* m_textItem;
 	QGraphicsPixmapItem* m_iconItem;

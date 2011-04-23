@@ -53,6 +53,7 @@ void DockItem::updateContent()
 void DockItem::addClient(Client* client)
 {
 	m_clients.append(client);
+	updateClientsIconGeometry();
 	updateContent();
 }
 
@@ -73,11 +74,13 @@ void DockItem::removeClient(Client* client)
 void DockItem::setPosition(const QPoint& position)
 {
 	setPos(position.x(), position.y());
+	updateClientsIconGeometry();
 }
 
 void DockItem::setSize(const QSize& size)
 {
 	m_size = size;
+	updateClientsIconGeometry();
 	updateContent();
 }
 
@@ -144,6 +147,21 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			X11Support::instance()->minimizeWindow(m_clients[0]->handle());
 		else
 			X11Support::instance()->activateWindow(m_clients[0]->handle());
+	}
+}
+
+void DockItem::updateClientsIconGeometry()
+{
+	QPointF topLeft = mapToScene(boundingRect().topLeft());
+	QVector<unsigned long> values;
+	values.resize(4);
+	values[0] = static_cast<unsigned long>(topLeft.x()) + m_dockApplet->panelWindow()->pos().x();
+	values[1] = static_cast<unsigned long>(topLeft.y()) + m_dockApplet->panelWindow()->pos().y();
+	values[2] = m_size.width();
+	values[3] = m_size.height();
+	for(int i = 0; i < m_clients.size(); i++)
+	{
+		X11Support::instance()->setWindowPropertyCardinalArray(m_clients[i]->handle(), "_NET_WM_ICON_GEOMETRY", values);
 	}
 }
 
