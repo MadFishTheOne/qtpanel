@@ -169,6 +169,20 @@ void X11Support::activateWindow(unsigned long window)
 	XWindowChanges wc;
 	wc.stack_mode = Above;
 	XConfigureWindow(QX11Info::display(), window, CWStackMode, &wc);
+
+	// Apparently, KWin won't bring window to top with configure request,
+	// so we also need to ask it politely by sending a message.
+	XClientMessageEvent event;
+	event.type = ClientMessage;
+	event.window = window;
+	event.message_type = atom("_NET_ACTIVE_WINDOW");
+	event.format = 32;
+	event.data.l[0] = 2;
+	event.data.l[1] = CurrentTime;
+	event.data.l[2] = 0;
+	event.data.l[3] = 0;
+	event.data.l[4] = 0;
+	XSendEvent(QX11Info::display(), rootWindow(), False, SubstructureNotifyMask | SubstructureRedirectMask, reinterpret_cast<XEvent*>(&event));
 }
 
 void X11Support::minimizeWindow(unsigned long window)

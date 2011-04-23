@@ -175,8 +175,11 @@ Client::~Client()
 void Client::updateVisibility()
 {
 	QVector<unsigned long> windowTypes = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
-	m_visible = windowTypes.contains(X11Support::instance()->atom("_NET_WM_WINDOW_TYPE_NORMAL"));
 	QVector<unsigned long> windowStates = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
+
+	// Show only regular windows in dock.
+	m_visible = windowTypes.size() == 1 && windowTypes[0] == X11Support::instance()->atom("_NET_WM_WINDOW_TYPE_NORMAL");
+	// Don't show window if requested explicitly in window states.
 	if(windowStates.contains(X11Support::instance()->atom("_NET_WM_STATE_SKIP_TASKBAR")))
 		m_visible = false;
 
