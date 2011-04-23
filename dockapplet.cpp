@@ -135,6 +135,16 @@ void DockItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+	if(isUnderMouse())
+	{
+		if(m_clients.isEmpty())
+			return;
+
+		if(m_dockApplet->activeWindow() == m_clients[0]->handle())
+			X11Support::instance()->minimizeWindow(m_clients[0]->handle());
+		else
+			X11Support::instance()->activateWindow(m_clients[0]->handle());
+	}
 }
 
 Client::Client(DockApplet* dockApplet, unsigned long handle)
@@ -210,8 +220,8 @@ DockApplet::~DockApplet()
 
 bool DockApplet::init()
 {
-	// Get info about existing clients.
-	clientListChanged();
+	updateClientList();
+	updateActiveWindow();
 
 	return true;
 }
@@ -264,7 +274,7 @@ DockItem* DockApplet::dockItemForClient(Client* client)
 	return new DockItem(this);
 }
 
-void DockApplet::clientListChanged()
+void DockApplet::updateClientList()
 {
 	QVector<unsigned long> windows = X11Support::instance()->getWindowPropertyWindowsArray(X11Support::instance()->rootWindow(), "_NET_CLIENT_LIST");
 
@@ -297,14 +307,25 @@ void DockApplet::clientListChanged()
 	}
 }
 
+void DockApplet::updateActiveWindow()
+{
+	m_activeWindow = X11Support::instance()->getWindowPropertyWindow(X11Support::instance()->rootWindow(), "_NET_ACTIVE_WINDOW");
+}
+
 void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
 {
 	if(window == X11Support::instance()->rootWindow())
 	{
 		if(atom == X11Support::instance()->atom("_NET_CLIENT_LIST"))
 		{
-			clientListChanged();
+			updateClientList();
 		}
+
+		if(atom == X11Support::instance()->atom("_NET_ACTIVE_WINDOW"))
+		{
+			updateActiveWindow();
+		}
+
 		return;
 	}
 

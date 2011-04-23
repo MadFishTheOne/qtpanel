@@ -55,6 +55,18 @@ static bool getWindowPropertyHelper(unsigned long window, unsigned long atom, un
 	return true;
 }
 
+unsigned long X11Support::getWindowPropertyWindow(unsigned long window, const QString& name)
+{
+	int numItems;
+	unsigned long* data;
+	unsigned long value = 0;
+	if(!getWindowPropertyHelper(window, atom(name), XA_WINDOW, numItems, data))
+		return value;
+	value = data[0];
+	XFree(data);
+	return value;
+}
+
 QVector<unsigned long> X11Support::getWindowPropertyWindowsArray(unsigned long window, const QString& name)
 {
 	int numItems;
@@ -150,4 +162,16 @@ QIcon X11Support::getWindowIcon(unsigned long window)
 void X11Support::registerForWindowPropertyChanges(unsigned long window)
 {
 	XSelectInput(QX11Info::display(), window, PropertyChangeMask);
+}
+
+void X11Support::activateWindow(unsigned long window)
+{
+	XWindowChanges wc;
+	wc.stack_mode = Above;
+	XConfigureWindow(QX11Info::display(), window, CWStackMode, &wc);
+}
+
+void X11Support::minimizeWindow(unsigned long window)
+{
+	XIconifyWindow(QX11Info::display(), window, QX11Info::appScreen());
 }

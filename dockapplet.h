@@ -116,6 +116,11 @@ public:
 
 	void updateLayout();
 
+	unsigned long activeWindow() const
+	{
+		return m_activeWindow;
+	}
+
 protected:
 	void layoutChanged();
 
@@ -123,10 +128,12 @@ private slots:
 	void windowPropertyChanged(unsigned long window, unsigned long atom);
 
 private:
-	void clientListChanged();
+	void updateClientList();
+	void updateActiveWindow();
 
 	QMap<unsigned long, Client*> m_clients;
 	QVector<DockItem*> m_dockItems;
+	unsigned long m_activeWindow;
 };
 
 #endif
