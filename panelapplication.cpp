@@ -46,12 +46,7 @@ PanelApplication::~PanelApplication()
 
 bool PanelApplication::x11EventFilter(XEvent* event)
 {
-	if(event->type == PropertyNotify && event->xproperty.window == QX11Info::appRootWindow())
-	{
-		if(event->xproperty.atom == X11Support::instance()->atom("_NET_CLIENT_LIST"))
-		{
-			emit clientListChanged();
-		}
-	}
+	if(event->type == PropertyNotify)
+		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
 	return false;
 }

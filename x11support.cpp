@@ -146,3 +146,8 @@ QIcon X11Support::getWindowIcon(unsigned long window)
 	XFree(rawData);
 	return icon;
 }
+
+void X11Support::registerForWindowPropertyChanges(unsigned long window)
+{
+	XSelectInput(QX11Info::display(), window, PropertyChangeMask);
+}

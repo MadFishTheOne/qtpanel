@@ -21,7 +21,7 @@ public:
 	bool x11EventFilter(XEvent* event);
 
 signals:
-	void clientListChanged();
+	void windowPropertyChanged(unsigned long window, unsigned long atom);
 
 private:
 	static PanelApplication* m_instance;

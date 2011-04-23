@@ -29,6 +29,7 @@ public:
 	QString getWindowPropertyLatin1String(unsigned long window, const QString& name);
 	QString getWindowName(unsigned long window);
 	QIcon getWindowIcon(unsigned long window);
+	void registerForWindowPropertyChanges(unsigned long window);
 
 private:
 	static X11Support* m_instance;

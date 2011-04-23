@@ -91,11 +91,11 @@ public:
 		return m_icon;
 	}
 
-private:
 	void updateVisibility();
 	void updateName();
 	void updateIcon();
 
+private:
 	DockApplet* m_dockApplet;
 	unsigned long m_handle;
 	QString m_name;
@@ -125,9 +125,11 @@ protected:
 	void layoutChanged();
 
 private slots:
-	void clientListChanged();
+	void windowPropertyChanged(unsigned long window, unsigned long atom);
 
 private:
+	void clientListChanged();
+
 	QMap<unsigned long, Client*> m_clients;
 	QVector<DockItem*> m_dockItems;
 };

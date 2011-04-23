@@ -109,6 +109,12 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 	m_dockApplet = dockApplet;
 	m_handle = handle;
 
+	// Don't change input mask for dock itself.
+	if(handle != m_dockApplet->panelWindow()->winId())
+	{
+		X11Support::instance()->registerForWindowPropertyChanges(m_handle);
+	}
+
 	updateVisibility();
 	updateName();
 	updateIcon();
@@ -160,8 +166,8 @@ void Client::updateIcon()
 DockApplet::DockApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow)
 {
-	// Register for notifications about client list changes.
-	connect(PanelApplication::instance(), SIGNAL(clientListChanged()), this, SLOT(clientListChanged()));
+	// Register for notifications about window property changes.
+	connect(PanelApplication::instance(), SIGNAL(windowPropertyChanged(ulong,ulong)), this, SLOT(windowPropertyChanged(ulong,ulong)));
 }
 
 DockApplet::~DockApplet()
@@ -254,5 +260,35 @@ void DockApplet::clientListChanged()
 		}
 		if(!clientRemoved)
 			break;
+	}
+}
+
+void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
+{
+	if(window == X11Support::instance()->rootWindow())
+	{
+		if(atom == X11Support::instance()->atom("_NET_CLIENT_LIST"))
+		{
+			clientListChanged();
+		}
+		return;
+	}
+
+	if(!m_clients.contains(window))
+		return;
+
+	if(atom == X11Support::instance()->atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::instance()->atom("_NET_WM_STATE"))
+	{
+		m_clients[window]->updateVisibility();
+	}
+
+	if(atom == X11Support::instance()->atom("_NET_WM_VISIBLE_NAME") || atom == X11Support::instance()->atom("_NET_WM_NAME") || atom == X11Support::instance()->atom("WM_NAME"))
+	{
+		m_clients[window]->updateName();
+	}
+
+	if(atom == X11Support::instance()->atom("_NET_WM_ICON"))
+	{
+		m_clients[window]->updateIcon();
 	}
 }
