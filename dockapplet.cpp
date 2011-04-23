@@ -40,15 +40,17 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 	m_dockApplet = dockApplet;
 	m_handle = handle;
 
-	updateName();
-	updateVisibility();
-
 	m_clientItem = new ClientGraphicsItem(this);
 
 	m_textItem = new TextGraphicsItem(m_clientItem);
 	m_textItem->setColor(Qt::white);
 	m_textItem->setFont(m_dockApplet->panelWindow()->font());
-	m_textItem->setPos(8.0, m_dockApplet->panelWindow()->textBaseLine() - 4.0);
+
+	m_iconItem = new QGraphicsPixmapItem(m_clientItem);
+
+	updateName();
+	updateVisibility();
+	updateIcon();
 
 	m_dockApplet->registerClient(this);
 	m_dockApplet->updateLayout();
@@ -56,6 +58,7 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 
 Client::~Client()
 {
+	delete m_iconItem;
 	delete m_textItem;
 	delete m_clientItem;
 
@@ -88,22 +91,16 @@ void Client::setSize(const QSize& size)
 
 void Client::updateLayout()
 {
-	if(!m_visible)
-	{
-		m_clientItem->setParentItem(NULL);
-		return;
-	}
+	updateTextItem();
 
-	m_clientItem->setParentItem(m_dockApplet->appletItem());
-
-	QFontMetrics fontMetrics(m_textItem->font());
-	QString shortName = fontMetrics.elidedText(m_name, Qt::ElideRight, m_size.width() - 16);
-	m_textItem->setText(shortName);
+	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine() - 4.0);
+	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
 }
 
 void Client::updateName()
 {
 	m_name = X11Support::instance()->getWindowName(m_handle);
+	updateTextItem();
 }
 
 void Client::updateVisibility()
@@ -113,6 +110,24 @@ void Client::updateVisibility()
 	QVector<unsigned long> windowStates = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
 	if(windowStates.contains(X11Support::instance()->atom("_NET_WM_STATE_SKIP_TASKBAR")))
 		m_visible = false;
+
+	if(m_visible)
+		m_clientItem->setParentItem(m_dockApplet->appletItem());
+	else
+		m_clientItem->setParentItem(NULL);
+}
+
+void Client::updateIcon()
+{
+	m_icon = X11Support::instance()->getWindowIcon(m_handle);
+	m_iconItem->setPixmap(m_icon.pixmap(16));
+}
+
+void Client::updateTextItem()
+{
+	QFontMetrics fontMetrics(m_textItem->font());
+	QString shortName = fontMetrics.elidedText(m_name, Qt::ElideRight, m_size.width() - 36);
+	m_textItem->setText(shortName);
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)

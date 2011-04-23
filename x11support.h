@@ -4,6 +4,7 @@
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtCore/QObject>
+#include <QtGui/QIcon>
 
 class X11Support: public QObject
 {
@@ -27,6 +28,7 @@ public:
 	QString getWindowPropertyUTF8String(unsigned long window, const QString& name);
 	QString getWindowPropertyLatin1String(unsigned long window, const QString& name);
 	QString getWindowName(unsigned long window);
+	QIcon getWindowIcon(unsigned long window);
 
 private:
 	static X11Support* m_instance;

@@ -2,6 +2,7 @@
 
 #include <QtGui/QApplication>
 #include <QtGui/QX11Info>
+#include <QtGui/QImage>
 
 // Keep all the X11 stuff with scary defines below normal headers.
 #include <X11/Xlib.h>
@@ -116,3 +117,32 @@ QString X11Support::getWindowName(unsigned long window)
 	return result;
 }
 
+QIcon X11Support::getWindowIcon(unsigned long window)
+{
+	int numItems;
+	unsigned long* rawData;
+	QIcon icon;
+	if(!getWindowPropertyHelper(window, atom("_NET_WM_ICON"), XA_CARDINAL, numItems, rawData))
+		return icon;
+	unsigned long* data = rawData;
+	while(numItems > 0)
+	{
+		int width = static_cast<int>(data[0]);
+		int height = static_cast<int>(data[1]);
+		data += 2;
+		numItems -= 2;
+		QImage image(width, height, QImage::Format_ARGB32);
+		for(int i = 0; i < height; i++)
+		{
+			for(int k = 0; k < width; k++)
+			{
+				image.setPixel(k, i, static_cast<unsigned int>(data[i*width + k]));
+			}
+		}
+		data += width*height;
+		numItems -= width*height;
+		icon.addPixmap(QPixmap::fromImage(image));
+	}
+	XFree(rawData);
+	return icon;
+}

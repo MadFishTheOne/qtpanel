@@ -2,9 +2,11 @@
 #define DOCKAPPLET_H
 
 #include <QtCore/QVector>
+#include <QtGui/QIcon>
 #include <QtGui/QGraphicsItem>
 #include "applet.h"
 
+class QGraphicsPixmapItem;
 class TextGraphicsItem;
 class DockApplet;
 class Client;
@@ -52,15 +54,20 @@ public:
 	}
 
 	void updateLayout();
-	void updateName();
-	void updateVisibility();
 
 private:
+	void updateName();
+	void updateVisibility();
+	void updateIcon();
+	void updateTextItem();
+
 	DockApplet* m_dockApplet;
 	ClientGraphicsItem* m_clientItem;
 	unsigned long m_handle;
 	QString m_name;
+	QIcon m_icon;
 	TextGraphicsItem* m_textItem;
+	QGraphicsPixmapItem* m_iconItem;
 	QSize m_size;
 	bool m_visible;
 };
