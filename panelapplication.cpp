@@ -48,5 +48,7 @@ bool PanelApplication::x11EventFilter(XEvent* event)
 {
 	if(event->type == PropertyNotify)
 		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
+	if(event->type == ClientMessage)
+		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);
 	return false;
 }

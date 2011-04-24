@@ -9,6 +9,7 @@
 
 #include "applicationsmenuapplet.h"
 #include "dockapplet.h"
+#include "trayapplet.h"
 #include "clockapplet.h"
 
 PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
@@ -37,8 +38,8 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 	{
 		QLinearGradient gradient(0.0, m_panelWindow->height() - borderThickness, 0.0, m_panelWindow->height());
 		gradient.setSpread(QGradient::RepeatSpread);
-		gradient.setColorAt(0, QColor(255, 255, 255, 0));
-		gradient.setColorAt(1, QColor(255, 255, 255, 128));
+		gradient.setColorAt(0.0, QColor(255, 255, 255, 0));
+		gradient.setColorAt(1.0, QColor(255, 255, 255, 128));
 		painter->setBrush(QBrush(gradient));
 		painter->drawRect(0.0, m_panelWindow->height() - borderThickness, m_panelWindow->width(), borderThickness);
 	}
@@ -46,8 +47,8 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 	{
 		QLinearGradient gradient(0.0, 0.0, 0.0, borderThickness);
 		gradient.setSpread(QGradient::RepeatSpread);
-		gradient.setColorAt(0, QColor(255, 255, 255, 128));
-		gradient.setColorAt(1, QColor(255, 255, 255, 0));
+		gradient.setColorAt(0.0, QColor(255, 255, 255, 128));
+		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 		painter->setBrush(QBrush(gradient));
 		painter->drawRect(0.0, 0.0, m_panelWindow->width(), borderThickness);
 	}
@@ -77,6 +78,9 @@ PanelWindow::PanelWindow()
 
 	m_applets.append(new ApplicationsMenuApplet(this));
 	m_applets.append(new DockApplet(this));
+	// Don't use tray for now - it won't work when background is set to transparent.
+	// Probably visual mismatch - needs investigating.
+	//m_applets.append(new TrayApplet(this));
 	m_applets.append(new ClockApplet(this));
 
 	resize(defaultWidth, defaultHeight);
@@ -93,10 +97,12 @@ PanelWindow::~PanelWindow()
 
 bool PanelWindow::init()
 {
-	for(int i = 0; i < m_applets.size(); i++)
+	for(int i = 0; i < m_applets.size();)
 	{
 		if(!m_applets[i]->init())
-			return false;
+			m_applets.remove(i);
+		else
+			i++;
 	}
 }
 

@@ -94,8 +94,8 @@ void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	painter->setPen(Qt::NoPen);
 	QPointF center(m_size.width()/2.0, m_size.height() + 32.0);
 	QRadialGradient gradient(center, 200.0, center);
-	gradient.setColorAt(0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
-	gradient.setColorAt(1, QColor(255, 255, 255, 0));
+	gradient.setColorAt(0.0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
+	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 	painter->setBrush(QBrush(gradient));
 	painter->drawRoundedRect(QRectF(0.0, 4.0, m_size.width(), m_size.height() - 8.0), 3.0, 3.0);
 }
@@ -171,11 +171,7 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 	m_dockApplet = dockApplet;
 	m_handle = handle;
 
-	// Don't change input mask for dock itself.
-	if(handle != m_dockApplet->panelWindow()->winId())
-	{
-		X11Support::instance()->registerForWindowPropertyChanges(m_handle);
-	}
+	X11Support::instance()->registerForWindowPropertyChanges(m_handle);
 
 	updateVisibility();
 	updateName();
@@ -238,6 +234,17 @@ DockApplet::DockApplet(PanelWindow* panelWindow)
 
 DockApplet::~DockApplet()
 {
+	while(!m_clients.isEmpty())
+	{
+		unsigned long key = m_clients.begin().key();
+		delete m_clients.begin().value();
+		m_clients.remove(key);
+	}
+
+	while(!m_dockItems.isEmpty())
+	{
+		delete m_dockItems[m_dockItems.size() - 1];
+	}
 }
 
 bool DockApplet::init()
@@ -305,6 +312,10 @@ void DockApplet::updateClientList()
 	{
 		if(!m_clients.contains(windows[i]))
 		{
+			// Skip our own windows.
+			if(QWidget::find(windows[i]) != NULL)
+				continue;
+
 			m_clients[windows[i]] = new Client(this, windows[i]);
 		}
 	}

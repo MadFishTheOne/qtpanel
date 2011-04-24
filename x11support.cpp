@@ -189,3 +189,22 @@ void X11Support::minimizeWindow(unsigned long window)
 {
 	XIconifyWindow(QX11Info::display(), window, QX11Info::appScreen());
 }
+
+unsigned long X11Support::systemTrayAtom()
+{
+	return atom(QString("_NET_SYSTEM_TRAY_S") + QString::number(QX11Info::appScreen()));
+}
+
+bool X11Support::makeSystemTray(unsigned long window)
+{
+	if(XGetSelectionOwner(QX11Info::display(), systemTrayAtom()) != 0)
+		return false;
+
+	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), window, CurrentTime);
+	return true;
+}
+
+void X11Support::freeSystemTray()
+{
+	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), None, CurrentTime);
+}

@@ -33,8 +33,12 @@ public:
 	void registerForWindowPropertyChanges(unsigned long window);
 	void activateWindow(unsigned long window);
 	void minimizeWindow(unsigned long window);
+	bool makeSystemTray(unsigned long window);
+	void freeSystemTray();
 
 private:
+	unsigned long systemTrayAtom();
+
 	static X11Support* m_instance;
 	QMap<QString, unsigned long> m_cachedAtoms;
 };

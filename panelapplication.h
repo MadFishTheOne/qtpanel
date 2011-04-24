@@ -22,6 +22,7 @@ public:
 
 signals:
 	void windowPropertyChanged(unsigned long window, unsigned long atom);
+	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
 
 private:
 	static PanelApplication* m_instance;

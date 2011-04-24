@@ -7,7 +7,7 @@
 #include "panelwindow.h"
 
 Applet::Applet(PanelWindow* panelWindow)
-	: m_panelWindow(panelWindow), m_highlightIntensity(0.0)
+	: m_panelWindow(panelWindow), m_highlightIntensity(0.0), m_interactive(false)
 {
 	setZValue(-1.0);
 	setParentItem(m_panelWindow->panelItem());
@@ -37,7 +37,9 @@ void Applet::setSize(const QSize& size)
 
 void Applet::setInteractive(bool interactive)
 {
-	if(interactive)
+	m_interactive = interactive;
+
+	if(m_interactive)
 	{
 		setAcceptsHoverEvents(true);
 		setAcceptedMouseButtons(Qt::LeftButton);
@@ -56,13 +58,21 @@ QRectF Applet::boundingRect() const
 
 void Applet::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+	if(m_size.width() < 32)
+		return; // Too small to draw a background (don't want to deal with weird corner cases).
+
+	if(!m_interactive)
+		return; // Currently, background is only used for highlight on interactive applets.
+
 	painter->setPen(Qt::NoPen);
-	qreal radius = (m_size.width()*m_size.width() + m_size.height()*m_size.height()) / (4.0 * m_size.height());
+	qreal radius = (m_size.width()*m_size.width() + m_size.height()*m_size.height()) / (4.0*m_size.height());
 	QPointF center(m_size.width()/2.0, m_size.height() + radius - m_size.height()/2.0);
 	static const qreal radiusInc = 10.0;
 	QRadialGradient gradient(center, radius + radiusInc, center);
-	gradient.setColorAt((radius - m_size.height()/2.0)/(radius + radiusInc), QColor(255, 255, 255, static_cast<int>(150*m_highlightIntensity)));
-	gradient.setColorAt(1, QColor(255, 255, 255, 0));
+	QColor highlightColor(255, 255, 255, static_cast<int>(150*m_highlightIntensity));
+	gradient.setColorAt(0.0, highlightColor);
+	gradient.setColorAt((radius - m_size.height()/2.0)/(radius + radiusInc), highlightColor);
+	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 	painter->setBrush(QBrush(gradient));
 	painter->drawRect(boundingRect());
 }

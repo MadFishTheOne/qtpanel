@@ -51,6 +51,7 @@ protected:
 	PanelWindow* m_panelWindow;
 	QPoint m_position;
 	QSize m_size;
+	bool m_interactive;
 	qreal m_highlightIntensity;
 };
 
