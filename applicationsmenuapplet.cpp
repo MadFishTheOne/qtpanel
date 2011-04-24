@@ -19,16 +19,6 @@ int ApplicationsMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* o
 		return QPlastiqueStyle::pixelMetric(metric, option, widget);
 }
 
-QSize ApplicationsMenuStyle::sizeFromContents(ContentsType type, const QStyleOption* option, const QSize& contentsSize, const QWidget* widget) const
-{
-	QSize size = QPlastiqueStyle::sizeFromContents(type, option, contentsSize, widget);
-	if(type == QStyle::CT_MenuItem)
-	{
-		size.setHeight(36);
-	}
-	return size;
-}
-
 bool DesktopFile::init(const QString& fileName)
 {
 	QFile file(fileName);
@@ -76,7 +66,7 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	m_menu = new QMenu();
 	m_menu->setStyle(&m_style);
 	m_menu->setFont(m_panelWindow->font());
-	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { background-color: transparent; color: white; padding-left: 38px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
+	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { height: 36px; background-color: transparent; color: white; padding-left: 38px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
 	m_subMenus.append(SubMenu(m_menu, "Accessories", "Utility", "applications-accessories"));
 	m_subMenus.append(SubMenu(m_menu, "Development", "Development", "applications-development"));
 	m_subMenus.append(SubMenu(m_menu, "Education", "Education", "applications-science"));

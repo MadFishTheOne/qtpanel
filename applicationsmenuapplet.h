@@ -12,7 +12,6 @@ class ApplicationsMenuStyle: public QPlastiqueStyle
 	Q_OBJECT
 public:
 	int pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const;
-	QSize sizeFromContents(ContentsType type, const QStyleOption* option, const QSize& contentsSize, const QWidget* widget) const;
 };
 
 class DesktopFile

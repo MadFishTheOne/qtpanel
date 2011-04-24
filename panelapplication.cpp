@@ -25,6 +25,9 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 
 	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
 
+	// TODO: Make this configurable.
+	QIcon::setThemeName("Faenza-Dark");
+
 	m_x11support = new X11Support();
 
 	m_panelWindow = new PanelWindow();
