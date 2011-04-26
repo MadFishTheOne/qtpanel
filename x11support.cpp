@@ -52,6 +52,8 @@ static bool getWindowPropertyHelper(unsigned long window, unsigned long atom, un
 	if(XGetWindowProperty(QX11Info::display(), window, atom, 0, 0x7FFFFFFF, False, type, &retType, &retFormat, &numItemsTemp, &bytesLeft, reinterpret_cast<unsigned char**>(&data)) != Success)
 		return false;
 	numItems = numItemsTemp;
+	if(numItems == 0)
+		return false;
 	return true;
 }
 
