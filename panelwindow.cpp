@@ -165,7 +165,7 @@ void PanelWindow::updatePosition()
 		x = screenGeometry.left();
 		break;
 	case Center:
-		x = (screenGeometry.left() + screenGeometry.right() - width())/2;
+		x = (screenGeometry.left() + screenGeometry.right() + 1 - width())/2;
 		break;
 	case Max:
 		x = screenGeometry.right() - width() + 1;
@@ -183,7 +183,7 @@ void PanelWindow::updatePosition()
 		y = screenGeometry.top();
 		break;
 	case Center:
-		y = (screenGeometry.top() + screenGeometry.bottom() - height())/2;
+		y = (screenGeometry.top() + screenGeometry.bottom() + 1 - height())/2;
 		break;
 	case Max:
 		y = screenGeometry.bottom() - height() + 1;
