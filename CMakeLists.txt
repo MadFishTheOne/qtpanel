@@ -3,6 +3,7 @@ project(qtpanel)
 find_package(Qt4 REQUIRED)
 set(qtpanel_HEADERS
 	textgraphicsitem.h
+	animationutils.h
 )
 set(qtpanel_MOC_HEADERS
 	x11support.h

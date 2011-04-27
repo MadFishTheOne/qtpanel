@@ -29,8 +29,10 @@ public:
 	void addClient(Client* client);
 	void removeClient(Client* client);
 
-	void setPosition(const QPoint& position);
-	void setSize(const QSize& size);
+	void setTargetPosition(const QPoint& targetPosition);
+	void setTargetSize(const QSize& targetSize);
+	void moveInstantly();
+	void startAnimation();
 
 	const QVector<Client*>& clients() const
 	{
@@ -41,22 +43,27 @@ public:
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 public slots:
-	void animateHighlight();
+	void animate();
 
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
 	void mousePressEvent(QGraphicsSceneMouseEvent* event);
 	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+	void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
 
 private:
 	void updateClientsIconGeometry();
 
+	QTimer* m_animationTimer;
 	DockApplet* m_dockApplet;
 	TextGraphicsItem* m_textItem;
 	QGraphicsPixmapItem* m_iconItem;
 	QVector<Client*> m_clients;
+	QPoint m_position;
+	QPoint m_targetPosition;
 	QSize m_size;
+	QSize m_targetSize;
 	qreal m_highlightIntensity;
 };
 

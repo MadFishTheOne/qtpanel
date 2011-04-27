@@ -4,14 +4,22 @@
 #include <QtGui/QPainter>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsSceneMouseEvent>
 #include "textgraphicsitem.h"
 #include "panelapplication.h"
 #include "panelwindow.h"
 #include "x11support.h"
+#include "animationutils.h"
 
 DockItem::DockItem(DockApplet* dockApplet)
 {
 	m_dockApplet = dockApplet;
+
+	m_animationTimer = new QTimer();
+
+	m_animationTimer->setInterval(20);
+	m_animationTimer->setSingleShot(true);
+	connect(m_animationTimer, SIGNAL(timeout()), this, SLOT(animate()));
 
 	setParentItem(m_dockApplet);
 	setAcceptsHoverEvents(true);
@@ -30,6 +38,7 @@ DockItem::~DockItem()
 {
 	delete m_iconItem;
 	delete m_textItem;
+	delete m_animationTimer;
 
 	m_dockApplet->unregisterDockItem(this);
 }
@@ -40,12 +49,12 @@ void DockItem::updateContent()
 		return;
 
 	QFontMetrics fontMetrics(m_textItem->font());
-	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_size.width() - 36);
+	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_targetSize.width() - 36);
 	m_textItem->setText(shortName);
 	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine());
 
 	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(16));
-	m_iconItem->setPos(8.0, m_size.height()/2 - 8);
+	m_iconItem->setPos(8.0, m_targetSize.height()/2 - 8);
 
 	update();
 }
@@ -71,17 +80,53 @@ void DockItem::removeClient(Client* client)
 	}
 }
 
-void DockItem::setPosition(const QPoint& position)
+void DockItem::setTargetPosition(const QPoint& targetPosition)
 {
-	setPos(position.x(), position.y());
+	m_targetPosition = targetPosition;
 	updateClientsIconGeometry();
 }
 
-void DockItem::setSize(const QSize& size)
+void DockItem::setTargetSize(const QSize& targetSize)
 {
-	m_size = size;
+	m_targetSize = targetSize;
 	updateClientsIconGeometry();
 	updateContent();
+}
+
+void DockItem::moveInstantly()
+{
+	m_position = m_targetPosition;
+	m_size = m_targetSize;
+	setPos(m_position.x(), m_position.y());
+	update();
+}
+
+void DockItem::startAnimation()
+{
+	if(!m_animationTimer->isActive())
+		m_animationTimer->start();
+}
+
+void DockItem::animate()
+{
+	bool needAnotherStep = false;
+
+	static const qreal highlightAnimationSpeed = 0.15;
+	qreal targetIntensity = isUnderMouse() ? 1.0 : 0.0;
+	m_highlightIntensity = AnimationUtils::animate(m_highlightIntensity, targetIntensity, highlightAnimationSpeed, needAnotherStep);
+
+	static const int positionAnimationSpeed = 24;
+	static const int sizeAnimationSpeed = 24;
+	m_position.setX(AnimationUtils::animate(m_position.x(), m_targetPosition.x(), positionAnimationSpeed, needAnotherStep));
+	m_position.setY(AnimationUtils::animate(m_position.y(), m_targetPosition.y(), positionAnimationSpeed, needAnotherStep));
+	m_size.setWidth(AnimationUtils::animate(m_size.width(), m_targetSize.width(), sizeAnimationSpeed, needAnotherStep));
+	m_size.setHeight(AnimationUtils::animate(m_size.height(), m_targetSize.height(), sizeAnimationSpeed, needAnotherStep));
+	setPos(m_position.x(), m_position.y());
+
+	update();
+
+	if(needAnotherStep)
+		m_animationTimer->start();
 }
 
 QRectF DockItem::boundingRect() const
@@ -100,36 +145,14 @@ void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	painter->drawRoundedRect(QRectF(0.0, 4.0, m_size.width(), m_size.height() - 8.0), 3.0, 3.0);
 }
 
-void DockItem::animateHighlight()
-{
-	static const qreal highlightAnimationSpeed = 0.15;
-	if(isUnderMouse())
-	{
-		m_highlightIntensity += highlightAnimationSpeed;
-		if(m_highlightIntensity > 1.0)
-			m_highlightIntensity = 1.0;
-		else
-			QTimer::singleShot(20, this, SLOT(animateHighlight()));
-	}
-	else
-	{
-		m_highlightIntensity -= highlightAnimationSpeed;
-		if(m_highlightIntensity < 0.0)
-			m_highlightIntensity = 0.0;
-		else
-			QTimer::singleShot(20, this, SLOT(animateHighlight()));
-	}
-	update();
-}
-
 void DockItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-	animateHighlight();
+	startAnimation();
 }
 
 void DockItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-	animateHighlight();
+	startAnimation();
 }
 
 void DockItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -148,6 +171,10 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 		else
 			X11Support::instance()->activateWindow(m_clients[0]->handle());
 	}
+}
+
+void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
 }
 
 void DockItem::updateClientsIconGeometry()
@@ -267,8 +294,9 @@ void DockApplet::updateLayout()
 		int spaceForThisClient = spaceForOneClient;
 		if(spaceForThisClient > 256)
 			spaceForThisClient = 256;
-		m_dockItems[i]->setPosition(QPoint(currentPosition, 0));
-		m_dockItems[i]->setSize(QSize(spaceForThisClient - 4, m_size.height()));
+		m_dockItems[i]->setTargetPosition(QPoint(currentPosition, 0));
+		m_dockItems[i]->setTargetSize(QSize(spaceForThisClient - 4, m_size.height()));
+		m_dockItems[i]->startAnimation();
 		currentPosition += spaceForThisClient;
 	}
 
@@ -289,6 +317,7 @@ void DockApplet::registerDockItem(DockItem* dockItem)
 {
 	m_dockItems.append(dockItem);
 	updateLayout();
+	dockItem->moveInstantly();
 }
 
 void DockApplet::unregisterDockItem(DockItem* dockItem)

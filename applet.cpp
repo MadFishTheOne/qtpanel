@@ -5,6 +5,7 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsSceneMouseEvent>
 #include "panelwindow.h"
+#include "animationutils.h"
 
 Applet::Applet(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow), m_highlightIntensity(0.0), m_interactive(false)
@@ -80,22 +81,11 @@ void Applet::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
 void Applet::animateHighlight()
 {
 	static const qreal highlightAnimationSpeed = 0.15;
-	if(isHighlighted())
-	{
-		m_highlightIntensity += highlightAnimationSpeed;
-		if(m_highlightIntensity > 1.0)
-			m_highlightIntensity = 1.0;
-		else
-			QTimer::singleShot(20, this, SLOT(animateHighlight()));
-	}
-	else
-	{
-		m_highlightIntensity -= highlightAnimationSpeed;
-		if(m_highlightIntensity < 0.0)
-			m_highlightIntensity = 0.0;
-		else
-			QTimer::singleShot(20, this, SLOT(animateHighlight()));
-	}
+	qreal targetIntensity = isHighlighted() ? 1.0 : 0.0;
+	bool needAnotherStep = false;
+	m_highlightIntensity = AnimationUtils::animate(m_highlightIntensity, targetIntensity, highlightAnimationSpeed, needAnotherStep);
+	if(needAnotherStep)
+		QTimer::singleShot(20, this, SLOT(animateHighlight()));
 	update();
 }
 
