@@ -65,6 +65,9 @@ private:
 	QSize m_size;
 	QSize m_targetSize;
 	qreal m_highlightIntensity;
+	bool m_dragging;
+	QPointF m_mouseDownPosition;
+	QPoint m_dragStartPosition;
 };
 
 // Used for tracking connected windows (X11 clients).
@@ -130,6 +133,10 @@ public:
 		return m_activeWindow;
 	}
 
+	void draggingStarted();
+	void draggingStopped();
+	void moveItem(DockItem* dockItem, bool right);
+
 protected:
 	void layoutChanged();
 
@@ -143,6 +150,7 @@ private:
 	QMap<unsigned long, Client*> m_clients;
 	QVector<DockItem*> m_dockItems;
 	unsigned long m_activeWindow;
+	bool m_dragging;
 };
 
 #endif

@@ -12,6 +12,7 @@
 #include "animationutils.h"
 
 DockItem::DockItem(DockApplet* dockApplet)
+	: m_dragging(false), m_highlightIntensity(0.0)
 {
 	m_dockApplet = dockApplet;
 
@@ -115,13 +116,16 @@ void DockItem::animate()
 	qreal targetIntensity = isUnderMouse() ? 1.0 : 0.0;
 	m_highlightIntensity = AnimationUtils::animate(m_highlightIntensity, targetIntensity, highlightAnimationSpeed, needAnotherStep);
 
-	static const int positionAnimationSpeed = 24;
-	static const int sizeAnimationSpeed = 24;
-	m_position.setX(AnimationUtils::animate(m_position.x(), m_targetPosition.x(), positionAnimationSpeed, needAnotherStep));
-	m_position.setY(AnimationUtils::animate(m_position.y(), m_targetPosition.y(), positionAnimationSpeed, needAnotherStep));
-	m_size.setWidth(AnimationUtils::animate(m_size.width(), m_targetSize.width(), sizeAnimationSpeed, needAnotherStep));
-	m_size.setHeight(AnimationUtils::animate(m_size.height(), m_targetSize.height(), sizeAnimationSpeed, needAnotherStep));
-	setPos(m_position.x(), m_position.y());
+	if(!m_dragging)
+	{
+		static const int positionAnimationSpeed = 24;
+		static const int sizeAnimationSpeed = 24;
+		m_position.setX(AnimationUtils::animate(m_position.x(), m_targetPosition.x(), positionAnimationSpeed, needAnotherStep));
+		m_position.setY(AnimationUtils::animate(m_position.y(), m_targetPosition.y(), positionAnimationSpeed, needAnotherStep));
+		m_size.setWidth(AnimationUtils::animate(m_size.width(), m_targetSize.width(), sizeAnimationSpeed, needAnotherStep));
+		m_size.setHeight(AnimationUtils::animate(m_size.height(), m_targetSize.height(), sizeAnimationSpeed, needAnotherStep));
+		setPos(m_position.x(), m_position.y());
+	}
 
 	update();
 
@@ -157,24 +161,61 @@ void DockItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 void DockItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+	m_mouseDownPosition = event->scenePos();
+	m_dragStartPosition = m_position;
 }
 
 void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-	if(isUnderMouse())
+	if(m_dragging)
 	{
-		if(m_clients.isEmpty())
-			return;
+		m_dragging = false;
+		m_dockApplet->draggingStopped();
+		setZValue(0.0); // No more on top.
+		startAnimation(); // Item can be out of it's regular, start animation to bring it back.
+	}
+	else
+	{
+		// Click is handled only in case of no dragging.
 
-		if(m_dockApplet->activeWindow() == m_clients[0]->handle())
-			X11Support::instance()->minimizeWindow(m_clients[0]->handle());
-		else
-			X11Support::instance()->activateWindow(m_clients[0]->handle());
+		if(isUnderMouse())
+		{
+			if(m_clients.isEmpty())
+				return;
+
+			if(m_dockApplet->activeWindow() == m_clients[0]->handle())
+				X11Support::instance()->minimizeWindow(m_clients[0]->handle());
+			else
+				X11Support::instance()->activateWindow(m_clients[0]->handle());
+		}
 	}
 }
 
 void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+	// Mouse events are sent only when mouse button is pressed.
+	if(!m_dragging)
+	{
+		m_dragging = true;
+		m_dockApplet->draggingStarted();
+		setZValue(1.0); // Be on top when dragging.
+	}
+
+	// TODO: Vertical orientation support.
+
+	QPointF delta = event->scenePos() - m_mouseDownPosition;
+	m_position.setX(m_dragStartPosition.x() + static_cast<int>(delta.x()));
+	setPos(m_position.x(), m_position.y());
+
+	int criticalShift = m_targetSize.width()*55/100;
+
+	if(m_position.x() < m_targetPosition.x() - criticalShift)
+		m_dockApplet->moveItem(this, false);
+
+	if(m_position.x() > m_targetPosition.x() + criticalShift)
+		m_dockApplet->moveItem(this, true);
+
+	update();
 }
 
 void DockItem::updateClientsIconGeometry()
@@ -253,7 +294,7 @@ void Client::updateIcon()
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)
-	: Applet(panelWindow)
+	: Applet(panelWindow), m_dragging(false)
 {
 	// Register for notifications about window property changes.
 	connect(PanelApplication::instance(), SIGNAL(windowPropertyChanged(ulong,ulong)), this, SLOT(windowPropertyChanged(ulong,ulong)));
@@ -303,6 +344,41 @@ void DockApplet::updateLayout()
 	update();
 }
 
+void DockApplet::draggingStarted()
+{
+	m_dragging = true;
+}
+
+void DockApplet::draggingStopped()
+{
+	m_dragging = false;
+	// Since we don't update it when dragging, we should do it now.
+	updateClientList();
+}
+
+void DockApplet::moveItem(DockItem* dockItem, bool right)
+{
+	int currentIndex = m_dockItems.indexOf(dockItem);
+	if(right)
+	{
+		if(currentIndex != (m_dockItems.size() - 1))
+		{
+			m_dockItems.remove(currentIndex);
+			m_dockItems.insert(currentIndex + 1, dockItem);
+			updateLayout();
+		}
+	}
+	else
+	{
+		if(currentIndex != 0)
+		{
+			m_dockItems.remove(currentIndex);
+			m_dockItems.insert(currentIndex - 1, dockItem);
+			updateLayout();
+		}
+	}
+}
+
 void DockApplet::layoutChanged()
 {
 	updateLayout();
@@ -334,6 +410,9 @@ DockItem* DockApplet::dockItemForClient(Client* client)
 
 void DockApplet::updateClientList()
 {
+	if(m_dragging)
+		return; // Don't want new dock items to appear (or old to be removed) while rearranging them with drag and drop.
+
 	QVector<unsigned long> windows = X11Support::instance()->getWindowPropertyWindowsArray(X11Support::instance()->rootWindow(), "_NET_CLIENT_LIST");
 
 	// Handle new clients.
