@@ -331,9 +331,9 @@ void DockApplet::updateLayout()
 {
 	// TODO: Vertical orientation support.
 
-	int freeSpace = m_size.width() - 8;
+	int freeSpace = m_size.width();
 	int spaceForOneClient = (m_dockItems.size() > 0) ? freeSpace/m_dockItems.size() : 0;
-	int currentPosition = 4;
+	int currentPosition = 0;
 	for(int i = 0; i < m_dockItems.size(); i++)
 	{
 		int spaceForThisClient = spaceForOneClient;

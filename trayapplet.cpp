@@ -86,7 +86,10 @@ bool TrayApplet::init()
 
 QSize TrayApplet::desiredSize()
 {
-	return QSize(32*m_trayItems.size(), -1);
+	int desiredWidth = 28*m_trayItems.size() - 4;
+	if(desiredWidth < 0)
+		desiredWidth = 0;
+	return QSize(desiredWidth, -1);
 }
 
 void TrayApplet::registerTrayItem(TrayItem* trayItem)
@@ -125,6 +128,6 @@ void TrayApplet::updateLayout()
 	{
 		m_trayItems[i]->setPosition(QPoint(currentPosition, m_size.height()/2 - 12));
 		m_trayItems[i]->setSize(QSize(24, 24));
-		currentPosition += 24;
+		currentPosition += 28;
 	}
 }

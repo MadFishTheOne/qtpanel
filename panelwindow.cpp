@@ -270,6 +270,8 @@ void PanelWindow::updateLayout()
 {
 	// TODO: Vertical orientation support.
 
+	static const int spacing = 4;
+
 	if(m_layoutPolicy != Normal && !m_dockMode)
 	{
 		int desiredSize = 0;
@@ -282,6 +284,9 @@ void PanelWindow::updateLayout()
 				else
 					desiredSize += 64; // Spacer applets don't really make sense on auto-size panel.
 			}
+			desiredSize += spacing*(m_applets.size() - 1);
+			if(desiredSize < 0)
+				desiredSize = 0;
 		}
 		if(m_layoutPolicy == FillSpace)
 		{
@@ -333,6 +338,6 @@ void PanelWindow::updateLayout()
 		m_applets[i]->setPosition(appletPosition);
 		m_applets[i]->setSize(appletSize);
 
-		spacePos += appletSize.width();
+		spacePos += appletSize.width() + spacing;
 	}
 }
