@@ -205,6 +205,10 @@ void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 	QPointF delta = event->scenePos() - m_mouseDownPosition;
 	m_position.setX(m_dragStartPosition.x() + static_cast<int>(delta.x()));
+	if(m_position.x() < 0)
+		m_position.setX(0);
+	if(m_position.x() >= m_dockApplet->size().width() - m_targetSize.width())
+		m_position.setX(m_dockApplet->size().width() - m_targetSize.width());
 	setPos(m_position.x(), m_position.y());
 
 	int criticalShift = m_targetSize.width()*55/100;

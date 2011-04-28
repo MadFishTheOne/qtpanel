@@ -21,6 +21,11 @@ public:
 	void setPosition(const QPoint& position);
 	void setSize(const QSize& size);
 
+	const QSize& size() const
+	{
+		return m_size;
+	}
+
 	virtual QSize desiredSize() = 0;
 
 	PanelWindow* panelWindow()
