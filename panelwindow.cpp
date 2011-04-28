@@ -299,7 +299,7 @@ void PanelWindow::updateLayout()
 	}
 
 	// Get total amount of space available for "spacer" applets (that take all available free space).
-	int freeSpace = width();
+	int freeSpace = width() - spacing*(m_applets.size() - 1);
 	int numSpacers = 0;
 	for(int i = 0; i < m_applets.size(); i++)
 	{
