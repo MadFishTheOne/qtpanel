@@ -109,13 +109,20 @@ bool PanelWindow::init()
 void PanelWindow::setDockMode(bool dockMode)
 {
 	m_dockMode = dockMode;
+
 	setAttribute(Qt::WA_X11NetWmWindowTypeDock, m_dockMode);
+
 	if(!m_dockMode)
 	{
 		// No need to reserve space anymore.
 		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT");
 		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT_PARTIAL");
 	}
+
+	// When in dock mode, panel should appear on all desktops.
+	unsigned long desktop = m_dockMode ? 0xFFFFFFFF : 0;
+	X11Support::instance()->setWindowPropertyCardinal(winId(), "_NET_WM_DESKTOP", desktop);
+
 	updateLayout();
 	updatePosition();
 }

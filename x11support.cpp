@@ -42,6 +42,11 @@ void X11Support::setWindowPropertyCardinalArray(unsigned long window, const QStr
 	XChangeProperty(QX11Info::display(), window, atom(name), XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<const unsigned char*>(values.data()), values.size());
 }
 
+void X11Support::setWindowPropertyCardinal(unsigned long window, const QString& name, unsigned long value)
+{
+	XChangeProperty(QX11Info::display(), window, atom(name), XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<const unsigned char*>(&value), 1);
+}
+
 template<class T>
 static bool getWindowPropertyHelper(unsigned long window, unsigned long atom, unsigned long type, int& numItems, T*& data)
 {

@@ -23,6 +23,7 @@ public:
 
 	void removeWindowProperty(unsigned long window, const QString& name);
 	void setWindowPropertyCardinalArray(unsigned long window, const QString& name, const QVector<unsigned long>& values);
+	void setWindowPropertyCardinal(unsigned long window, const QString& name, unsigned long value);
 	unsigned long getWindowPropertyWindow(unsigned long window, const QString& name);
 	QVector<unsigned long> getWindowPropertyWindowsArray(unsigned long window, const QString& name);
 	QVector<unsigned long> getWindowPropertyAtomsArray(unsigned long window, const QString& name);
