@@ -13,10 +13,22 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 {
 	m_instance = this;
 
+	m_x11support = new X11Support();
+
+	// Close existing qtpanel instance.
+	QVector<unsigned long> windows = X11Support::getWindowPropertyWindowsArray(X11Support::rootWindow(), "_NET_CLIENT_LIST");
+	foreach(unsigned long window, windows)
+	{
+		if(X11Support::getWindowName(window) == "qtpanel")
+		{
+			// Have to kill it, since WM may not respect close request on panel window.
+			X11Support::killClient(window);
+			break;
+		}
+	}
+
 	// TODO: Make this configurable.
 	QIcon::setThemeName("Faenza-Dark");
-
-	m_x11support = new X11Support();
 
 	m_panelWindow = new PanelWindow();
 	m_panelWindow->resize(128, 32);

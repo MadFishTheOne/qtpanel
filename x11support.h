@@ -30,6 +30,8 @@ public:
 	static void registerForWindowPropertyChanges(unsigned long window);
 	static void activateWindow(unsigned long window);
 	static void minimizeWindow(unsigned long window);
+	static void closeWindow(unsigned long window);
+	static void killClient(unsigned long window);
 	static bool makeSystemTray(unsigned long window);
 	static void freeSystemTray();
 	static unsigned long getARGBVisualId();

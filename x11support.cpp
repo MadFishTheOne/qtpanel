@@ -185,6 +185,21 @@ void X11Support::registerForWindowPropertyChanges(unsigned long window)
 	XSelectInput(QX11Info::display(), window, PropertyChangeMask);
 }
 
+static void sendNETWMMessage(unsigned long window, const QString& atomName, unsigned long l0 = 0, unsigned long l1 = 0, unsigned long l2 = 0, unsigned long l3 = 0, unsigned long l4 = 0)
+{
+	XClientMessageEvent event;
+	event.type = ClientMessage;
+	event.window = window;
+	event.message_type = X11Support::atom(atomName);
+	event.format = 32;
+	event.data.l[0] = l0;
+	event.data.l[1] = l1;
+	event.data.l[2] = l2;
+	event.data.l[3] = l3;
+	event.data.l[4] = l4;
+	XSendEvent(QX11Info::display(), X11Support::rootWindow(), False, SubstructureNotifyMask | SubstructureRedirectMask, reinterpret_cast<XEvent*>(&event));
+}
+
 void X11Support::activateWindow(unsigned long window)
 {
 	XWindowChanges wc;
@@ -193,22 +208,22 @@ void X11Support::activateWindow(unsigned long window)
 
 	// Apparently, KWin won't bring window to top with configure request,
 	// so we also need to ask it politely by sending a message.
-	XClientMessageEvent event;
-	event.type = ClientMessage;
-	event.window = window;
-	event.message_type = atom("_NET_ACTIVE_WINDOW");
-	event.format = 32;
-	event.data.l[0] = 2;
-	event.data.l[1] = CurrentTime;
-	event.data.l[2] = 0;
-	event.data.l[3] = 0;
-	event.data.l[4] = 0;
-	XSendEvent(QX11Info::display(), rootWindow(), False, SubstructureNotifyMask | SubstructureRedirectMask, reinterpret_cast<XEvent*>(&event));
+	sendNETWMMessage(window, "_NET_ACTIVE_WINDOW", 2, CurrentTime);
 }
 
 void X11Support::minimizeWindow(unsigned long window)
 {
 	XIconifyWindow(QX11Info::display(), window, QX11Info::appScreen());
+}
+
+void X11Support::closeWindow(unsigned long window)
+{
+	sendNETWMMessage(window, "_NET_CLOSE_WINDOW", CurrentTime, 2);
+}
+
+void X11Support::killClient(unsigned long window)
+{
+	XKillClient(QX11Info::display(), window);
 }
 
 unsigned long X11Support::systemTrayAtom()
