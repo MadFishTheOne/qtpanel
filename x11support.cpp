@@ -81,6 +81,18 @@ static bool getWindowPropertyHelper(unsigned long window, unsigned long atom, un
 	return true;
 }
 
+unsigned long X11Support::getWindowPropertyCardinal(unsigned long window, const QString& name)
+{
+	int numItems;
+	unsigned long* data;
+	unsigned long value = 0;
+	if(!getWindowPropertyHelper(window, atom(name), XA_CARDINAL, numItems, data))
+		return value;
+	value = data[0];
+	XFree(data);
+	return value;
+}
+
 unsigned long X11Support::getWindowPropertyWindow(unsigned long window, const QString& name)
 {
 	int numItems;
@@ -226,6 +238,11 @@ void X11Support::closeWindow(unsigned long window)
 	sendNETWMMessage(window, "_NET_CLOSE_WINDOW", CurrentTime, 2);
 }
 
+void X11Support::destroyWindow(unsigned long window)
+{
+	XDestroyWindow(QX11Info::display(), window);
+}
+
 void X11Support::killClient(unsigned long window)
 {
 	XKillClient(QX11Info::display(), window);
@@ -242,6 +259,22 @@ bool X11Support::makeSystemTray(unsigned long window)
 		return false;
 
 	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), window, CurrentTime);
+	setWindowPropertyVisualId(window, "_NET_SYSTEM_TRAY_VISUAL", getARGBVisualId());
+	XSync(QX11Info::display(), False);
+
+	// Inform other clients.
+	XClientMessageEvent event;
+	event.type = ClientMessage;
+	event.window = rootWindow();
+	event.message_type = atom("MANAGER");
+	event.format = 32;
+	event.data.l[0] = CurrentTime;
+	event.data.l[1] = systemTrayAtom();
+	event.data.l[2] = window;
+	event.data.l[3] = 0;
+	event.data.l[4] = 0;
+	XSendEvent(QX11Info::display(), X11Support::rootWindow(), False, StructureNotifyMask, reinterpret_cast<XEvent*>(&event));
+
 	return true;
 }
 

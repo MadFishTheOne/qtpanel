@@ -20,6 +20,8 @@ TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 
 TrayItem::~TrayItem()
 {
+	X11Support::destroyWindow(m_window);
+
 	m_trayApplet->unregisterTrayItem(this);
 }
 
@@ -79,8 +81,6 @@ bool TrayApplet::init()
 		// Another tray is active.
 		return false;
 	}
-
-	X11Support::setWindowPropertyVisualId(m_panelWindow->winId(), "_NET_SYSTEM_TRAY_VISUAL", X11Support::getARGBVisualId());
 
 	connect(PanelApplication::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 

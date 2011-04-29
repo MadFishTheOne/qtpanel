@@ -2,6 +2,10 @@
 
 #include "x11support.h"
 
+// For sending a signal to process.
+#include <sys/types.h>
+#include <signal.h>
+
 // Xlib is needed here for XEvent declaration (used in x11EventFilter).
 // Keep all the X11 stuff with scary defines below normal headers.
 #include <X11/Xlib.h>
@@ -21,8 +25,8 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 	{
 		if(X11Support::getWindowName(window) == "qtpanel")
 		{
-			// Have to kill it, since WM may not respect close request on panel window.
-			X11Support::killClient(window);
+			unsigned long pid = X11Support::getWindowPropertyCardinal(window, "_NET_WM_PID");
+			kill(pid, SIGINT);
 			break;
 		}
 	}

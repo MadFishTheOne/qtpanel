@@ -21,6 +21,7 @@ public:
 	static void setWindowPropertyCardinalArray(unsigned long window, const QString& name, const QVector<unsigned long>& values);
 	static void setWindowPropertyCardinal(unsigned long window, const QString& name, unsigned long value);
 	static void setWindowPropertyVisualId(unsigned long window, const QString& name, unsigned long value);
+	static unsigned long getWindowPropertyCardinal(unsigned long window, const QString& name);
 	static unsigned long getWindowPropertyWindow(unsigned long window, const QString& name);
 	static QVector<unsigned long> getWindowPropertyWindowsArray(unsigned long window, const QString& name);
 	static QVector<unsigned long> getWindowPropertyAtomsArray(unsigned long window, const QString& name);
@@ -32,6 +33,7 @@ public:
 	static void activateWindow(unsigned long window);
 	static void minimizeWindow(unsigned long window);
 	static void closeWindow(unsigned long window);
+	static void destroyWindow(unsigned long window);
 	static void killClient(unsigned long window);
 	static bool makeSystemTray(unsigned long window);
 	static void freeSystemTray();
