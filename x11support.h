@@ -20,6 +20,7 @@ public:
 	static void removeWindowProperty(unsigned long window, const QString& name);
 	static void setWindowPropertyCardinalArray(unsigned long window, const QString& name, const QVector<unsigned long>& values);
 	static void setWindowPropertyCardinal(unsigned long window, const QString& name, unsigned long value);
+	static void setWindowPropertyVisualId(unsigned long window, const QString& name, unsigned long value);
 	static unsigned long getWindowPropertyWindow(unsigned long window, const QString& name);
 	static QVector<unsigned long> getWindowPropertyWindowsArray(unsigned long window, const QString& name);
 	static QVector<unsigned long> getWindowPropertyAtomsArray(unsigned long window, const QString& name);
@@ -37,6 +38,9 @@ public:
 	static unsigned long getARGBVisualId();
 	static void redirectWindow(unsigned long window);
 	static QPixmap getWindowPixmap(unsigned long window);
+	static void resizeWindow(unsigned long window, int width, int height);
+	static void mapWindow(unsigned long window);
+	static void reparentWindow(unsigned long window, unsigned long parent);
 
 private:
 	static unsigned long systemTrayAtom();

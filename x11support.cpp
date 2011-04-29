@@ -61,6 +61,11 @@ void X11Support::setWindowPropertyCardinal(unsigned long window, const QString& 
 	XChangeProperty(QX11Info::display(), window, atom(name), XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<const unsigned char*>(&value), 1);
 }
 
+void X11Support::setWindowPropertyVisualId(unsigned long window, const QString& name, unsigned long value)
+{
+	XChangeProperty(QX11Info::display(), window, atom(name), XA_VISUALID, 32, PropModeReplace, reinterpret_cast<const unsigned char*>(&value), 1);
+}
+
 template<class T>
 static bool getWindowPropertyHelper(unsigned long window, unsigned long atom, unsigned long type, int& numItems, T*& data)
 {
@@ -270,4 +275,19 @@ void X11Support::redirectWindow(unsigned long window)
 QPixmap X11Support::getWindowPixmap(unsigned long window)
 {
 	return QPixmap::fromX11Pixmap(XCompositeNameWindowPixmap(QX11Info::display(), window));
+}
+
+void X11Support::resizeWindow(unsigned long window, int width, int height)
+{
+	XResizeWindow(QX11Info::display(), window, width, height);
+}
+
+void X11Support::mapWindow(unsigned long window)
+{
+	XMapWindow(QX11Info::display(), window);
+}
+
+void X11Support::reparentWindow(unsigned long window, unsigned long parent)
+{
+	XReparentWindow(QX11Info::display(), window, parent, 0, 0);
 }

@@ -1,56 +1,57 @@
 #include "trayapplet.h"
 
-#include <QtGui/QX11EmbedContainer>
+#include <QtGui/QPainter>
 #include "panelapplication.h"
 #include "panelwindow.h"
 #include "x11support.h"
 
-// FIXME: Tray applet isn't usable yet. Needs more investigation.
-// Won't work when panel window background is set to transparent (probably visual mismatch).
-// Also, there are problems with QX11EmbedContainer. For some reason, tray icon window's minimal size hint
-// was set to 48x48 in my test case and that's why QX11EmbedContainer didn't resize it correctly (to smaller size).
-
 TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 	: m_trayApplet(trayApplet), m_window(window)
 {
-	m_container = new QX11EmbedContainer(trayApplet->panelWindow());
+	setParentItem(m_trayApplet);
 
-	connect(m_container, SIGNAL(clientClosed()), this, SLOT(clientClosed()));
-	connect(m_container, SIGNAL(clientIsEmbedded()), this, SLOT(clientIsEmbedded()));
-
-	m_container->show();
-	m_container->embedClient(m_window);
+	X11Support::reparentWindow(m_window, m_trayApplet->panelWindow()->winId());
+	X11Support::resizeWindow(m_window, 24, 24);
+	X11Support::redirectWindow(m_window);
+	X11Support::mapWindow(m_window);
 
 	m_trayApplet->registerTrayItem(this);
 }
 
 TrayItem::~TrayItem()
 {
-	delete m_container;
-
 	m_trayApplet->unregisterTrayItem(this);
 }
 
 void TrayItem::setPosition(const QPoint& position)
 {
-	m_container->move(static_cast<int>(m_trayApplet->pos().x() + position.x()), static_cast<int>(m_trayApplet->pos().y() + position.y()));
+	setPos(position.x(), position.y());
 }
 
 void TrayItem::setSize(const QSize& size)
 {
 	m_size = size;
-	if(m_container->clientWinId() != 0)
-		m_container->resize(m_size);
+	update();
 }
 
-void TrayItem::clientClosed()
+QRectF TrayItem::boundingRect() const
 {
-	delete this;
+	return QRectF(0.0, 0.0, m_size.width() - 1, m_size.height() - 1);
 }
 
-void TrayItem::clientIsEmbedded()
+void TrayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-	m_container->resize(m_size);
+	// Background.
+	painter->setPen(Qt::NoPen);
+	QPointF center(m_size.width()/2.0, m_size.height()/2.0);
+	QRadialGradient gradient(center, 20.0, center);
+	gradient.setColorAt(0.0, QColor(255, 255, 255, 80));
+	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
+	painter->setBrush(QBrush(gradient));
+	painter->drawRect(boundingRect());
+
+	// Icon itself.
+	painter->drawPixmap(0, 0, X11Support::getWindowPixmap(m_window));
 }
 
 TrayApplet::TrayApplet(PanelWindow* panelWindow)
@@ -78,6 +79,8 @@ bool TrayApplet::init()
 		// Another tray is active.
 		return false;
 	}
+
+	X11Support::setWindowPropertyVisualId(m_panelWindow->winId(), "_NET_SYSTEM_TRAY_VISUAL", X11Support::getARGBVisualId());
 
 	connect(PanelApplication::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 

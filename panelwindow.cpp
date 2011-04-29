@@ -78,8 +78,7 @@ PanelWindow::PanelWindow()
 
 	m_applets.append(new ApplicationsMenuApplet(this));
 	m_applets.append(new DockApplet(this));
-	// Don't use tray for now - it won't work when background is set to transparent.
-	// Probably visual mismatch - needs investigating.
+	// Not ready yet.
 	//m_applets.append(new TrayApplet(this));
 	m_applets.append(new ClockApplet(this));
 

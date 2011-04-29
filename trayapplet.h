@@ -5,12 +5,12 @@
 #include <QtCore/QSize>
 #include "applet.h"
 
-class QX11EmbedContainer;
 class TrayApplet;
 
-class TrayItem: public QObject
+class TrayItem: public QObject, public QGraphicsItem
 {
 	Q_OBJECT
+	Q_INTERFACES(QGraphicsItem)
 public:
 	TrayItem(TrayApplet* trayApplet, unsigned long window);
 	~TrayItem();
@@ -18,15 +18,13 @@ public:
 	void setPosition(const QPoint& position);
 	void setSize(const QSize& size);
 
-private slots:
-	void clientClosed();
-	void clientIsEmbedded();
+	QRectF boundingRect() const;
+	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
 private:
 	QSize m_size;
 	TrayApplet* m_trayApplet;
 	unsigned long m_window;
-	QX11EmbedContainer* m_container;
 };
 
 class TrayApplet: public Applet
