@@ -115,13 +115,13 @@ void PanelWindow::setDockMode(bool dockMode)
 	if(!m_dockMode)
 	{
 		// No need to reserve space anymore.
-		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT");
-		X11Support::instance()->removeWindowProperty(winId(), "_NET_WM_STRUT_PARTIAL");
+		X11Support::removeWindowProperty(winId(), "_NET_WM_STRUT");
+		X11Support::removeWindowProperty(winId(), "_NET_WM_STRUT_PARTIAL");
 	}
 
 	// When in dock mode, panel should appear on all desktops.
 	unsigned long desktop = m_dockMode ? 0xFFFFFFFF : 0;
-	X11Support::instance()->setWindowPropertyCardinal(winId(), "_NET_WM_DESKTOP", desktop);
+	X11Support::setWindowPropertyCardinal(winId(), "_NET_WM_DESKTOP", desktop);
 
 	updateLayout();
 	updatePosition();
@@ -237,9 +237,9 @@ void PanelWindow::updatePosition()
 		default:
 			break;
 		}
-		X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT_PARTIAL", values);
+		X11Support::setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT_PARTIAL", values);
 		values.resize(4);
-		X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT", values);
+		X11Support::setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT", values);
 	}
 
 	// Update "blur behind" hint.
@@ -249,7 +249,7 @@ void PanelWindow::updatePosition()
 	values[1] = 0;
 	values[2] = width();
 	values[3] = height();
-	X11Support::instance()->setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
+	X11Support::setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
 }
 
 int PanelWindow::textBaseLine()

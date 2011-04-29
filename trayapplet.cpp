@@ -61,7 +61,7 @@ TrayApplet::TrayApplet(PanelWindow* panelWindow)
 TrayApplet::~TrayApplet()
 {
 	if(m_initialized)
-		X11Support::instance()->freeSystemTray();
+		X11Support::freeSystemTray();
 
 	while(!m_trayItems.isEmpty())
 	{
@@ -71,7 +71,7 @@ TrayApplet::~TrayApplet()
 
 bool TrayApplet::init()
 {
-	m_initialized = X11Support::instance()->makeSystemTray(m_panelWindow->winId());
+	m_initialized = X11Support::makeSystemTray(m_panelWindow->winId());
 
 	if(!m_initialized)
 	{
@@ -111,7 +111,7 @@ void TrayApplet::layoutChanged()
 
 void TrayApplet::clientMessageReceived(unsigned long window, unsigned long atom, void* data)
 {
-	if(atom == X11Support::instance()->atom("_NET_SYSTEM_TRAY_OPCODE"))
+	if(atom == X11Support::atom("_NET_SYSTEM_TRAY_OPCODE"))
 	{
 		unsigned long* l = reinterpret_cast<unsigned long*>(data);
 		if(l[1] == 0) // TRAY_REQUEST_DOCK

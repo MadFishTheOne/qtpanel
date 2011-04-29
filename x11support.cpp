@@ -8,11 +8,23 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+static XErrorHandler oldX11ErrorHandler = NULL;
+
+static int x11errorHandler(Display* display, XErrorEvent* error)
+{
+	if(error->error_code == BadWindow)
+		return 0; // This usually happens when querying property on a window that's already gone. That's OK.
+
+	return (*oldX11ErrorHandler)(display, error);
+}
+
 X11Support* X11Support::m_instance = NULL;
 
 X11Support::X11Support()
 {
 	m_instance = this;
+
+	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
 }
 
 X11Support::~X11Support()
@@ -27,9 +39,9 @@ unsigned long X11Support::rootWindow()
 
 unsigned long X11Support::atom(const QString& name)
 {
-	if(!m_cachedAtoms.contains(name))
-		m_cachedAtoms[name] = XInternAtom(QX11Info::display(), name.toLatin1().data(), False);
-	return m_cachedAtoms[name];
+	if(!m_instance->m_cachedAtoms.contains(name))
+		m_instance->m_cachedAtoms[name] = XInternAtom(QX11Info::display(), name.toLatin1().data(), False);
+	return m_instance->m_cachedAtoms[name];
 }
 
 void X11Support::removeWindowProperty(unsigned long window, const QString& name)

@@ -1,20 +1,10 @@
 #include "panelapplication.h"
 
-#include <QtGui/QX11Info>
 #include "x11support.h"
 
+// Xlib is needed here for XEvent declaration (used in x11EventFilter).
 // Keep all the X11 stuff with scary defines below normal headers.
 #include <X11/Xlib.h>
-
-static XErrorHandler oldX11ErrorHandler = NULL;
-
-static int x11errorHandler(Display* display, XErrorEvent* error)
-{
-	if(error->error_code == BadWindow)
-		return 0; // This usually happens when querying property on a window that's already gone. That's OK.
-
-	return (*oldX11ErrorHandler)(display, error);
-}
 
 PanelApplication* PanelApplication::m_instance = NULL;
 
@@ -22,8 +12,6 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 	: QApplication(argc, argv)
 {
 	m_instance = this;
-
-	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
 
 	// TODO: Make this configurable.
 	QIcon::setThemeName("Faenza-Dark");

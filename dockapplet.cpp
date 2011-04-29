@@ -184,9 +184,9 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 				return;
 
 			if(m_dockApplet->activeWindow() == m_clients[0]->handle())
-				X11Support::instance()->minimizeWindow(m_clients[0]->handle());
+				X11Support::minimizeWindow(m_clients[0]->handle());
 			else
-				X11Support::instance()->activateWindow(m_clients[0]->handle());
+				X11Support::activateWindow(m_clients[0]->handle());
 		}
 	}
 }
@@ -233,7 +233,7 @@ void DockItem::updateClientsIconGeometry()
 	values[3] = m_size.height();
 	for(int i = 0; i < m_clients.size(); i++)
 	{
-		X11Support::instance()->setWindowPropertyCardinalArray(m_clients[i]->handle(), "_NET_WM_ICON_GEOMETRY", values);
+		X11Support::setWindowPropertyCardinalArray(m_clients[i]->handle(), "_NET_WM_ICON_GEOMETRY", values);
 	}
 }
 
@@ -243,7 +243,7 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 	m_dockApplet = dockApplet;
 	m_handle = handle;
 
-	X11Support::instance()->registerForWindowPropertyChanges(m_handle);
+	X11Support::registerForWindowPropertyChanges(m_handle);
 
 	updateVisibility();
 	updateName();
@@ -260,14 +260,14 @@ Client::~Client()
 
 void Client::updateVisibility()
 {
-	QVector<unsigned long> windowTypes = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
-	QVector<unsigned long> windowStates = X11Support::instance()->getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
+	QVector<unsigned long> windowTypes = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
+	QVector<unsigned long> windowStates = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
 
 	// Show only regular windows in dock.
 	// When no window type is set, assume it's normal window.
-	m_visible = (windowTypes.size() == 0) || (windowTypes.size() == 1 && windowTypes[0] == X11Support::instance()->atom("_NET_WM_WINDOW_TYPE_NORMAL"));
+	m_visible = (windowTypes.size() == 0) || (windowTypes.size() == 1 && windowTypes[0] == X11Support::atom("_NET_WM_WINDOW_TYPE_NORMAL"));
 	// Don't show window if requested explicitly in window states.
-	if(windowStates.contains(X11Support::instance()->atom("_NET_WM_STATE_SKIP_TASKBAR")))
+	if(windowStates.contains(X11Support::atom("_NET_WM_STATE_SKIP_TASKBAR")))
 		m_visible = false;
 
 	if(m_dockItem == NULL && m_visible)
@@ -285,14 +285,14 @@ void Client::updateVisibility()
 
 void Client::updateName()
 {
-	m_name = X11Support::instance()->getWindowName(m_handle);
+	m_name = X11Support::getWindowName(m_handle);
 	if(m_dockItem != NULL)
 		m_dockItem->updateContent();
 }
 
 void Client::updateIcon()
 {
-	m_icon = X11Support::instance()->getWindowIcon(m_handle);
+	m_icon = X11Support::getWindowIcon(m_handle);
 	if(m_dockItem != NULL)
 		m_dockItem->updateContent();
 }
@@ -417,7 +417,7 @@ void DockApplet::updateClientList()
 	if(m_dragging)
 		return; // Don't want new dock items to appear (or old to be removed) while rearranging them with drag and drop.
 
-	QVector<unsigned long> windows = X11Support::instance()->getWindowPropertyWindowsArray(X11Support::instance()->rootWindow(), "_NET_CLIENT_LIST");
+	QVector<unsigned long> windows = X11Support::getWindowPropertyWindowsArray(X11Support::rootWindow(), "_NET_CLIENT_LIST");
 
 	// Handle new clients.
 	for(int i = 0; i < windows.size(); i++)
@@ -454,19 +454,19 @@ void DockApplet::updateClientList()
 
 void DockApplet::updateActiveWindow()
 {
-	m_activeWindow = X11Support::instance()->getWindowPropertyWindow(X11Support::instance()->rootWindow(), "_NET_ACTIVE_WINDOW");
+	m_activeWindow = X11Support::getWindowPropertyWindow(X11Support::rootWindow(), "_NET_ACTIVE_WINDOW");
 }
 
 void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
 {
-	if(window == X11Support::instance()->rootWindow())
+	if(window == X11Support::rootWindow())
 	{
-		if(atom == X11Support::instance()->atom("_NET_CLIENT_LIST"))
+		if(atom == X11Support::atom("_NET_CLIENT_LIST"))
 		{
 			updateClientList();
 		}
 
-		if(atom == X11Support::instance()->atom("_NET_ACTIVE_WINDOW"))
+		if(atom == X11Support::atom("_NET_ACTIVE_WINDOW"))
 		{
 			updateActiveWindow();
 		}
@@ -477,17 +477,17 @@ void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
 	if(!m_clients.contains(window))
 		return;
 
-	if(atom == X11Support::instance()->atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::instance()->atom("_NET_WM_STATE"))
+	if(atom == X11Support::atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::atom("_NET_WM_STATE"))
 	{
 		m_clients[window]->updateVisibility();
 	}
 
-	if(atom == X11Support::instance()->atom("_NET_WM_VISIBLE_NAME") || atom == X11Support::instance()->atom("_NET_WM_NAME") || atom == X11Support::instance()->atom("WM_NAME"))
+	if(atom == X11Support::atom("_NET_WM_VISIBLE_NAME") || atom == X11Support::atom("_NET_WM_NAME") || atom == X11Support::atom("WM_NAME"))
 	{
 		m_clients[window]->updateName();
 	}
 
-	if(atom == X11Support::instance()->atom("_NET_WM_ICON"))
+	if(atom == X11Support::atom("_NET_WM_ICON"))
 	{
 		m_clients[window]->updateIcon();
 	}
