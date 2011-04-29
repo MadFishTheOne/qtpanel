@@ -6,7 +6,9 @@
 
 // Keep all the X11 stuff with scary defines below normal headers.
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/Xatom.h>
+#include <X11/extensions/Xcomposite.h>
 
 static XErrorHandler oldX11ErrorHandler = NULL;
 
@@ -226,4 +228,31 @@ bool X11Support::makeSystemTray(unsigned long window)
 void X11Support::freeSystemTray()
 {
 	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), None, CurrentTime);
+}
+
+unsigned long X11Support::getARGBVisualId()
+{
+	XVisualInfo visualInfoTemplate;
+	visualInfoTemplate.screen = QX11Info::appScreen();
+	visualInfoTemplate.depth = 32;
+	visualInfoTemplate.red_mask = 0x00FF0000;
+	visualInfoTemplate.green_mask = 0x0000FF00;
+	visualInfoTemplate.blue_mask = 0x000000FF;
+
+	int numVisuals;
+	XVisualInfo* visualInfoList = XGetVisualInfo(QX11Info::display(), VisualScreenMask | VisualDepthMask | VisualRedMaskMask | VisualGreenMaskMask | VisualBlueMaskMask, &visualInfoTemplate, &numVisuals);
+	unsigned long id = visualInfoList[0].visualid;
+	XFree(visualInfoList);
+
+	return id;
+}
+
+void X11Support::redirectWindow(unsigned long window)
+{
+	XCompositeRedirectWindow(QX11Info::display(), window, CompositeRedirectManual);
+}
+
+QPixmap X11Support::getWindowPixmap(unsigned long window)
+{
+	return QPixmap::fromX11Pixmap(XCompositeNameWindowPixmap(QX11Info::display(), window));
 }

@@ -5,6 +5,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QObject>
 #include <QtGui/QIcon>
+#include <QtGui/QPixmap>
 
 class X11Support: public QObject
 {
@@ -31,6 +32,9 @@ public:
 	static void minimizeWindow(unsigned long window);
 	static bool makeSystemTray(unsigned long window);
 	static void freeSystemTray();
+	static unsigned long getARGBVisualId();
+	static void redirectWindow(unsigned long window);
+	static QPixmap getWindowPixmap(unsigned long window);
 
 private:
 	static unsigned long systemTrayAtom();
