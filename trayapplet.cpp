@@ -1,6 +1,7 @@
 #include "trayapplet.h"
 
 #include <QtGui/QPainter>
+#include <QtGui/QGraphicsSceneMouseEvent>
 #include "panelapplication.h"
 #include "panelwindow.h"
 #include "x11support.h"
@@ -29,6 +30,7 @@ TrayItem::~TrayItem()
 void TrayItem::setPosition(const QPoint& position)
 {
 	setPos(position.x(), position.y());
+	X11Support::moveWindow(m_window, static_cast<int>(m_trayApplet->pos().x()) + position.x() + m_size.width()/2 - 12, static_cast<int>(m_trayApplet->pos().y()) + position.y() + m_size.height()/2 - 12);
 }
 
 void TrayItem::setSize(const QSize& size)
@@ -47,14 +49,14 @@ void TrayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	// Background.
 	painter->setPen(Qt::NoPen);
 	QPointF center(m_size.width()/2.0, m_size.height()/2.0);
-	QRadialGradient gradient(center, 20.0, center);
+	QRadialGradient gradient(center, 14.0, center);
 	gradient.setColorAt(0.0, QColor(255, 255, 255, 80));
 	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 	painter->setBrush(QBrush(gradient));
 	painter->drawRect(boundingRect());
 
 	// Icon itself.
-	painter->drawPixmap(0, 0, X11Support::getWindowPixmap(m_window));
+	painter->drawPixmap(m_size.width()/2 - 12, m_size.height()/2 - 12, X11Support::getWindowPixmap(m_window));
 }
 
 TrayApplet::TrayApplet(PanelWindow* panelWindow)
@@ -156,8 +158,8 @@ void TrayApplet::updateLayout()
 	int currentPosition = 0;
 	for(int i = 0; i < m_trayItems.size(); i++)
 	{
-		m_trayItems[i]->setPosition(QPoint(currentPosition, m_size.height()/2 - 12));
-		m_trayItems[i]->setSize(QSize(24, 24));
+		m_trayItems[i]->setSize(QSize(28, m_size.height()));
+		m_trayItems[i]->setPosition(QPoint(currentPosition, 0));
 		currentPosition += 28;
 	}
 }

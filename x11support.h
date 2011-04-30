@@ -43,6 +43,7 @@ public:
 	static void unredirectWindow(unsigned long window);
 	static QPixmap getWindowPixmap(unsigned long window);
 	static void resizeWindow(unsigned long window, int width, int height);
+	static void moveWindow(unsigned long window, int x, int y);
 	static void mapWindow(unsigned long window);
 	static void reparentWindow(unsigned long window, unsigned long parent);
 

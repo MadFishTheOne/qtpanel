@@ -330,6 +330,11 @@ void X11Support::resizeWindow(unsigned long window, int width, int height)
 	XResizeWindow(QX11Info::display(), window, width, height);
 }
 
+void X11Support::moveWindow(unsigned long window, int x, int y)
+{
+	XMoveWindow(QX11Info::display(), window, x, y);
+}
+
 void X11Support::mapWindow(unsigned long window)
 {
 	XMapWindow(QX11Info::display(), window);

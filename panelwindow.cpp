@@ -93,8 +93,7 @@ PanelWindow::PanelWindow()
 
 	m_applets.append(new ApplicationsMenuApplet(this));
 	m_applets.append(new DockApplet(this));
-	// Not ready yet.
-	//m_applets.append(new TrayApplet(this));
+	m_applets.append(new TrayApplet(this));
 	m_applets.append(new ClockApplet(this));
 
 	resize(defaultWidth, defaultHeight);
