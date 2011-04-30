@@ -102,8 +102,11 @@ PanelWindow::PanelWindow()
 
 PanelWindow::~PanelWindow()
 {
-	for(int i = 0; i < m_applets.size(); i++)
-		delete m_applets[i];
+	while(!m_applets.isEmpty())
+	{
+		delete m_applets[m_applets.size() - 1];
+		m_applets.resize(m_applets.size() - 1);
+	}
 	delete m_view;
 	delete m_panelItem;
 	delete m_scene;

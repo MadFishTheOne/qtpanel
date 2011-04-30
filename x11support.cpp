@@ -305,6 +305,11 @@ void X11Support::redirectWindow(unsigned long window)
 	XCompositeRedirectWindow(QX11Info::display(), window, CompositeRedirectManual);
 }
 
+void X11Support::unredirectWindow(unsigned long window)
+{
+	XCompositeUnredirectWindow(QX11Info::display(), window, CompositeRedirectManual);
+}
+
 QPixmap X11Support::getWindowPixmap(unsigned long window)
 {
 	return QPixmap::fromX11Pixmap(XCompositeNameWindowPixmap(QX11Info::display(), window));

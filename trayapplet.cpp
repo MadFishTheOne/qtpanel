@@ -20,7 +20,7 @@ TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 
 TrayItem::~TrayItem()
 {
-	X11Support::destroyWindow(m_window);
+	X11Support::reparentWindow(m_window, X11Support::rootWindow());
 
 	m_trayApplet->unregisterTrayItem(this);
 }

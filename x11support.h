@@ -39,6 +39,7 @@ public:
 	static void freeSystemTray();
 	static unsigned long getARGBVisualId();
 	static void redirectWindow(unsigned long window);
+	static void unredirectWindow(unsigned long window);
 	static QPixmap getWindowPixmap(unsigned long window);
 	static void resizeWindow(unsigned long window, int width, int height);
 	static void mapWindow(unsigned long window);
