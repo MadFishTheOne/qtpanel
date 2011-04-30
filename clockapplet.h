@@ -20,7 +20,7 @@ protected:
 	void layoutChanged();
 
 private slots:
-	void update();
+	void updateContent();
 
 private:
 	void scheduleUpdate();
