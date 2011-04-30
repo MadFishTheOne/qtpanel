@@ -9,6 +9,7 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/Xcomposite.h>
+#include <X11/extensions/Xdamage.h>
 
 static XErrorHandler oldX11ErrorHandler = NULL;
 
@@ -25,8 +26,9 @@ X11Support* X11Support::m_instance = NULL;
 X11Support::X11Support()
 {
 	m_instance = this;
-
 	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
+	int damageErrorBase;
+	XDamageQueryExtension(QX11Info::display(), &m_damageEventBase, &damageErrorBase);
 }
 
 X11Support::~X11Support()
@@ -205,6 +207,9 @@ void X11Support::registerForWindowPropertyChanges(unsigned long window)
 void X11Support::registerForTrayIconUpdates(unsigned long window)
 {
 	XSelectInput(QX11Info::display(), window, StructureNotifyMask);
+
+	// Apparently, there is no need to destroy damage object, as it's gone automatically when window is destroyed.
+	XDamageCreate(QX11Info::display(), window, XDamageReportNonEmpty);
 }
 
 static void sendNETWMMessage(unsigned long window, const QString& atomName, unsigned long l0 = 0, unsigned long l1 = 0, unsigned long l2 = 0, unsigned long l3 = 0, unsigned long l4 = 0)
@@ -333,4 +338,5 @@ void X11Support::mapWindow(unsigned long window)
 void X11Support::reparentWindow(unsigned long window, unsigned long parent)
 {
 	XReparentWindow(QX11Info::display(), window, parent, 0, 0);
+	XSync(QX11Info::display(), False);
 }

@@ -84,6 +84,7 @@ bool TrayApplet::init()
 	}
 
 	connect(PanelApplication::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
+	connect(PanelApplication::instance(), SIGNAL(windowDamaged(ulong)), this, SLOT(windowDamaged(ulong)));
 	connect(PanelApplication::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 
 	return true;
@@ -133,6 +134,18 @@ void TrayApplet::windowClosed(unsigned long window)
 		if(m_trayItems[i]->window() == window)
 		{
 			delete m_trayItems[i];
+			break;
+		}
+	}
+}
+
+void TrayApplet::windowDamaged(unsigned long window)
+{
+	for(int i = 0; i < m_trayItems.size(); i++)
+	{
+		if(m_trayItems[i]->window() == window)
+		{
+			m_trayItems[i]->update();
 			break;
 		}
 	}

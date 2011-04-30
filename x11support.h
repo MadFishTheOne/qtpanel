@@ -46,10 +46,16 @@ public:
 	static void mapWindow(unsigned long window);
 	static void reparentWindow(unsigned long window, unsigned long parent);
 
+	static unsigned long damageEventBase()
+	{
+		return m_instance->m_damageEventBase;
+	}
+
 private:
 	static unsigned long systemTrayAtom();
 
 	static X11Support* m_instance;
+	int m_damageEventBase;
 	QMap<QString, unsigned long> m_cachedAtoms;
 };
 

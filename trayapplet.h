@@ -52,6 +52,7 @@ protected:
 private slots:
 	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
 	void windowClosed(unsigned long window);
+	void windowDamaged(unsigned long window);
 
 private:
 	void updateLayout();
