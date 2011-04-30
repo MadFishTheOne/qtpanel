@@ -21,6 +21,7 @@ public:
 	bool x11EventFilter(XEvent* event);
 
 signals:
+	void windowClosed(unsigned long window);
 	void windowPropertyChanged(unsigned long window, unsigned long atom);
 	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
 

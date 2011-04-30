@@ -202,6 +202,11 @@ void X11Support::registerForWindowPropertyChanges(unsigned long window)
 	XSelectInput(QX11Info::display(), window, PropertyChangeMask);
 }
 
+void X11Support::registerForTrayIconUpdates(unsigned long window)
+{
+	XSelectInput(QX11Info::display(), window, StructureNotifyMask);
+}
+
 static void sendNETWMMessage(unsigned long window, const QString& atomName, unsigned long l0 = 0, unsigned long l1 = 0, unsigned long l2 = 0, unsigned long l3 = 0, unsigned long l4 = 0)
 {
 	XClientMessageEvent event;

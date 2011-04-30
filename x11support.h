@@ -30,6 +30,7 @@ public:
 	static QString getWindowName(unsigned long window);
 	static QIcon getWindowIcon(unsigned long window);
 	static void registerForWindowPropertyChanges(unsigned long window);
+	static void registerForTrayIconUpdates(unsigned long window);
 	static void activateWindow(unsigned long window);
 	static void minimizeWindow(unsigned long window);
 	static void closeWindow(unsigned long window);

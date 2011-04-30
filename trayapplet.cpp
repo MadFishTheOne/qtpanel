@@ -10,6 +10,7 @@ TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 {
 	setParentItem(m_trayApplet);
 
+	X11Support::registerForTrayIconUpdates(m_window);
 	X11Support::reparentWindow(m_window, m_trayApplet->panelWindow()->winId());
 	X11Support::resizeWindow(m_window, 24, 24);
 	X11Support::redirectWindow(m_window);
@@ -82,6 +83,7 @@ bool TrayApplet::init()
 		return false;
 	}
 
+	connect(PanelApplication::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
 	connect(PanelApplication::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 
 	return true;
@@ -120,6 +122,18 @@ void TrayApplet::clientMessageReceived(unsigned long window, unsigned long atom,
 		if(l[1] == 0) // TRAY_REQUEST_DOCK
 		{
 			new TrayItem(this, l[2]);
+		}
+	}
+}
+
+void TrayApplet::windowClosed(unsigned long window)
+{
+	for(int i = 0; i < m_trayItems.size(); i++)
+	{
+		if(m_trayItems[i]->window() == window)
+		{
+			delete m_trayItems[i];
+			break;
 		}
 	}
 }

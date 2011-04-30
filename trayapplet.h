@@ -21,6 +21,11 @@ public:
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+	unsigned long window() const
+	{
+		return m_window;
+	}
+
 private:
 	QSize m_size;
 	TrayApplet* m_trayApplet;
@@ -46,6 +51,7 @@ protected:
 
 private slots:
 	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
+	void windowClosed(unsigned long window);
 
 private:
 	void updateLayout();

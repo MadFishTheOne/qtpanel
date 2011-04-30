@@ -37,6 +37,8 @@ PanelApplication::~PanelApplication()
 
 bool PanelApplication::x11EventFilter(XEvent* event)
 {
+	if(event->type == DestroyNotify)
+		emit windowClosed(event->xdestroywindow.window);
 	if(event->type == PropertyNotify)
 		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
 	if(event->type == ClientMessage)
