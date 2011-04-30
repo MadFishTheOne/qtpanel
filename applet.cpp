@@ -11,6 +11,7 @@ Applet::Applet(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow), m_highlightIntensity(0.0), m_interactive(false)
 {
 	setZValue(-1.0);
+	setAcceptedMouseButtons(Qt::RightButton);
 	setParentItem(m_panelWindow->panelItem());
 }
 
@@ -43,12 +44,12 @@ void Applet::setInteractive(bool interactive)
 	if(m_interactive)
 	{
 		setAcceptsHoverEvents(true);
-		setAcceptedMouseButtons(Qt::LeftButton);
+		setAcceptedMouseButtons(Qt::RightButton | Qt::LeftButton);
 	}
 	else
 	{
 		setAcceptsHoverEvents(false);
-		setAcceptedMouseButtons(Qt::NoButton);
+		setAcceptedMouseButtons(Qt::RightButton);
 	}
 }
 
@@ -125,10 +126,17 @@ void Applet::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
 	if(isUnderMouse())
 	{
-		// FIXME: Workaround.
-		// For some weird reason, if clicked() function is called directly, and menu is opened,
-		// this item will receive hover enter event on menu close. But it shouldn't (mouse is outside).
-		// Probably somehow related to taking a mouse grab when one is already active.
-		QTimer::singleShot(1, this, SLOT(clicked()));
+		if(event->button() == Qt::LeftButton)
+		{
+			// FIXME: Workaround.
+			// For some weird reason, if clicked() function is called directly, and menu is opened,
+			// this item will receive hover enter event on menu close. But it shouldn't (mouse is outside).
+			// Probably somehow related to taking a mouse grab when one is already active.
+			QTimer::singleShot(1, this, SLOT(clicked()));
+		}
+		if(event->button() == Qt::RightButton)
+		{
+			m_panelWindow->showPanelContextMenu(m_position + QPoint(static_cast<int>(event->pos().x()), static_cast<int>(event->pos().y())));
+		}
 	}
 }

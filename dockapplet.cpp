@@ -24,7 +24,7 @@ DockItem::DockItem(DockApplet* dockApplet)
 
 	setParentItem(m_dockApplet);
 	setAcceptsHoverEvents(true);
-	setAcceptedMouseButtons(Qt::LeftButton);
+	setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 
 	m_textItem = new TextGraphicsItem(this);
 	m_textItem->setColor(Qt::white);

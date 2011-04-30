@@ -20,6 +20,10 @@ public:
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
+protected:
+	void mousePressEvent(QGraphicsSceneMouseEvent* event);
+	void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+
 private:
 	PanelWindow* m_panelWindow;
 };
@@ -115,6 +119,8 @@ public:
 	void resizeEvent(QResizeEvent* event);
 
 	void updateLayout();
+
+	void showPanelContextMenu(const QPoint& point);
 
 private:
 	bool m_dockMode;

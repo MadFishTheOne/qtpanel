@@ -4,7 +4,9 @@
 #include <QtGui/QApplication>
 #include <QtGui/QDesktopWidget>
 #include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsSceneMouseEvent>
 #include <QtGui/QGraphicsView>
+#include <QtGui/QMenu>
 #include "x11support.h"
 
 #include "applicationsmenuapplet.h"
@@ -16,6 +18,7 @@ PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
 {
 	setZValue(-10.0); // Background.
+	setAcceptedMouseButtons(Qt::RightButton);
 }
 
 PanelWindowGraphicsItem::~PanelWindowGraphicsItem()
@@ -51,6 +54,18 @@ void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphic
 		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 		painter->setBrush(QBrush(gradient));
 		painter->drawRect(0.0, 0.0, m_panelWindow->width(), borderThickness);
+	}
+}
+
+void PanelWindowGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+}
+
+void PanelWindowGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+	if(isUnderMouse())
+	{
+		m_panelWindow->showPanelContextMenu(QPoint(static_cast<int>(event->pos().x()), static_cast<int>(event->pos().y())));
 	}
 }
 
@@ -339,4 +354,11 @@ void PanelWindow::updateLayout()
 
 		spacePos += appletSize.width() + spacing;
 	}
+}
+
+void PanelWindow::showPanelContextMenu(const QPoint& point)
+{
+	QMenu menu;
+	menu.addAction(QIcon::fromTheme("application-exit"), "Quit panel", QApplication::instance(), SLOT(quit()))->setIconVisibleInMenu(true);
+	menu.exec(pos() + point);
 }
