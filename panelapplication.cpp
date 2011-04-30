@@ -2,10 +2,6 @@
 
 #include "x11support.h"
 
-// For sending a signal to process.
-#include <sys/types.h>
-#include <signal.h>
-
 // Xlib is needed here for XEvent declaration (used in x11EventFilter).
 // Keep all the X11 stuff with scary defines below normal headers.
 #include <X11/Xlib.h>
@@ -18,18 +14,6 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 	m_instance = this;
 
 	m_x11support = new X11Support();
-
-	// Close existing qtpanel instance.
-	QVector<unsigned long> windows = X11Support::getWindowPropertyWindowsArray(X11Support::rootWindow(), "_NET_CLIENT_LIST");
-	foreach(unsigned long window, windows)
-	{
-		if(X11Support::getWindowName(window) == "qtpanel")
-		{
-			unsigned long pid = X11Support::getWindowPropertyCardinal(window, "_NET_WM_PID");
-			kill(pid, SIGINT);
-			break;
-		}
-	}
 
 	// TODO: Make this configurable.
 	QIcon::setThemeName("Faenza-Dark");
