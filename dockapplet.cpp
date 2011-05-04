@@ -213,6 +213,10 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
 	// Mouse events are sent only when mouse button is pressed.
+
+	if((event->buttons() & Qt::LeftButton) == 0)
+		return; // Dragging only with left button.
+
 	if(!m_dragging)
 	{
 		m_dragging = true;
