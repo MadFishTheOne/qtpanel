@@ -99,11 +99,13 @@ public:
 		return m_icon;
 	}
 
+	void windowPropertyChanged(unsigned long atom);
+
+private:
 	void updateVisibility();
 	void updateName();
 	void updateIcon();
 
-private:
 	DockApplet* m_dockApplet;
 	unsigned long m_handle;
 	QString m_name;

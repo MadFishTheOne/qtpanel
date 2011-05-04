@@ -281,6 +281,24 @@ Client::~Client()
 	}
 }
 
+void Client::windowPropertyChanged(unsigned long atom)
+{
+	if(atom == X11Support::atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::atom("_NET_WM_STATE"))
+	{
+		updateVisibility();
+	}
+
+	if(atom == X11Support::atom("_NET_WM_VISIBLE_NAME") || atom == X11Support::atom("_NET_WM_NAME") || atom == X11Support::atom("WM_NAME"))
+	{
+		updateName();
+	}
+
+	if(atom == X11Support::atom("_NET_WM_ICON"))
+	{
+		updateIcon();
+	}
+}
+
 void Client::updateVisibility()
 {
 	QVector<unsigned long> windowTypes = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
@@ -497,21 +515,6 @@ void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
 		return;
 	}
 
-	if(!m_clients.contains(window))
-		return;
-
-	if(atom == X11Support::atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::atom("_NET_WM_STATE"))
-	{
-		m_clients[window]->updateVisibility();
-	}
-
-	if(atom == X11Support::atom("_NET_WM_VISIBLE_NAME") || atom == X11Support::atom("_NET_WM_NAME") || atom == X11Support::atom("WM_NAME"))
-	{
-		m_clients[window]->updateName();
-	}
-
-	if(atom == X11Support::atom("_NET_WM_ICON"))
-	{
-		m_clients[window]->updateIcon();
-	}
+	if(m_clients.contains(window))
+		m_clients[window]->windowPropertyChanged(atom);
 }
