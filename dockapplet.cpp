@@ -1,5 +1,6 @@
 #include "dockapplet.h"
 
+#include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtGui/QFontMetrics>
@@ -13,7 +14,7 @@
 #include "animationutils.h"
 
 DockItem::DockItem(DockApplet* dockApplet)
-	: m_dragging(false), m_highlightIntensity(0.0)
+	: m_dragging(false), m_highlightIntensity(0.0), m_urgencyHighlightIntensity(0.0)
 {
 	m_dockApplet = dockApplet;
 
@@ -117,6 +118,19 @@ void DockItem::animate()
 	qreal targetIntensity = isUnderMouse() ? 1.0 : 0.0;
 	m_highlightIntensity = AnimationUtils::animate(m_highlightIntensity, targetIntensity, highlightAnimationSpeed, needAnotherStep);
 
+	static const qreal urgencyHighlightAnimationSpeed = 0.015;
+	qreal targetUrgencyIntensity = 0.0;
+	if(isUrgent())
+	{
+		qint64 msecs = QDateTime::currentMSecsSinceEpoch() % 3000;
+		if(msecs < 1500)
+			targetUrgencyIntensity = 1.0;
+		else
+			targetUrgencyIntensity = 0.5;
+		needAnotherStep = true;
+	}
+	m_urgencyHighlightIntensity = AnimationUtils::animate(m_urgencyHighlightIntensity, targetUrgencyIntensity, urgencyHighlightAnimationSpeed, needAnotherStep);
+
 	if(!m_dragging)
 	{
 		static const int positionAnimationSpeed = 24;
@@ -151,11 +165,25 @@ void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 {
 	painter->setPen(Qt::NoPen);
 	QPointF center(m_size.width()/2.0, m_size.height() + 32.0);
-	QRadialGradient gradient(center, 200.0, center);
-	gradient.setColorAt(0.0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
-	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
-	painter->setBrush(QBrush(gradient));
-	painter->drawRoundedRect(QRectF(0.0, 4.0, m_size.width(), m_size.height() - 8.0), 3.0, 3.0);
+	QRectF rect(0.0, 4.0, m_size.width(), m_size.height() - 8.0);
+	static const qreal roundRadius = 3.0;
+
+	{
+		QRadialGradient gradient(center, 200.0, center);
+		gradient.setColorAt(0.0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
+		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
+		painter->setBrush(QBrush(gradient));
+		painter->drawRoundedRect(rect, roundRadius, roundRadius);
+	}
+
+	if(m_urgencyHighlightIntensity > 0.001)
+	{
+		QRadialGradient gradient(center, 200.0, center);
+		gradient.setColorAt(0.0, QColor(255, 100, 0, static_cast<int>(160*m_urgencyHighlightIntensity)));
+		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
+		painter->setBrush(QBrush(gradient));
+		painter->drawRoundedRect(rect, roundRadius, roundRadius);
+	}
 }
 
 void DockItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -260,6 +288,16 @@ void DockItem::updateClientsIconGeometry()
 	}
 }
 
+bool DockItem::isUrgent()
+{
+	for(int i = 0; i < m_clients.size(); i++)
+	{
+		if(m_clients[i]->isUrgent())
+			return true;
+	}
+	return false;
+}
+
 Client::Client(DockApplet* dockApplet, unsigned long handle)
 	: m_dockItem(NULL)
 {
@@ -271,6 +309,7 @@ Client::Client(DockApplet* dockApplet, unsigned long handle)
 	updateVisibility();
 	updateName();
 	updateIcon();
+	updateUrgency();
 }
 
 Client::~Client()
@@ -296,6 +335,11 @@ void Client::windowPropertyChanged(unsigned long atom)
 	if(atom == X11Support::atom("_NET_WM_ICON"))
 	{
 		updateIcon();
+	}
+
+	if(atom == X11Support::atom("WM_HINTS"))
+	{
+		updateUrgency();
 	}
 }
 
@@ -336,6 +380,13 @@ void Client::updateIcon()
 	m_icon = X11Support::getWindowIcon(m_handle);
 	if(m_dockItem != NULL)
 		m_dockItem->updateContent();
+}
+
+void Client::updateUrgency()
+{
+	m_isUrgent = X11Support::getWindowUrgency(m_handle);
+	if(m_dockItem != NULL)
+		m_dockItem->startAnimation();
 }
 
 DockApplet::DockApplet(PanelWindow* panelWindow)

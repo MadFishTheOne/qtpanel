@@ -217,6 +217,14 @@ QIcon X11Support::getWindowIcon(unsigned long window)
 	return icon;
 }
 
+bool X11Support::getWindowUrgency(unsigned long window)
+{
+	XWMHints* hints = XGetWMHints(QX11Info::display(), window);
+	bool isUrgent = (hints->flags & 256) != 0; // UrgencyHint
+	XFree(hints);
+	return isUrgent;
+}
+
 void X11Support::registerForWindowPropertyChanges(unsigned long window)
 {
 	XSelectInput(QX11Info::display(), window, PropertyChangeMask);

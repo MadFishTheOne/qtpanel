@@ -36,6 +36,7 @@ public:
 	static QString getWindowPropertyLatin1String(unsigned long window, const QString& name);
 	static QString getWindowName(unsigned long window);
 	static QIcon getWindowIcon(unsigned long window);
+	static bool getWindowUrgency(unsigned long window);
 	static void registerForWindowPropertyChanges(unsigned long window);
 	static void registerForTrayIconUpdates(unsigned long window);
 	static void activateWindow(unsigned long window);

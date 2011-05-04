@@ -55,6 +55,7 @@ protected:
 
 private:
 	void updateClientsIconGeometry();
+	bool isUrgent();
 
 	QTimer* m_animationTimer;
 	DockApplet* m_dockApplet;
@@ -66,6 +67,7 @@ private:
 	QSize m_size;
 	QSize m_targetSize;
 	qreal m_highlightIntensity;
+	qreal m_urgencyHighlightIntensity;
 	bool m_dragging;
 	QPointF m_mouseDownPosition;
 	QPoint m_dragStartPosition;
@@ -99,17 +101,24 @@ public:
 		return m_icon;
 	}
 
+	bool isUrgent() const
+	{
+		return m_isUrgent;
+	}
+
 	void windowPropertyChanged(unsigned long atom);
 
 private:
 	void updateVisibility();
 	void updateName();
 	void updateIcon();
+	void updateUrgency();
 
 	DockApplet* m_dockApplet;
 	unsigned long m_handle;
 	QString m_name;
 	QIcon m_icon;
+	bool m_isUrgent;
 	bool m_visible;
 	DockItem* m_dockItem;
 };
