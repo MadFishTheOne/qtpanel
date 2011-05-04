@@ -5,6 +5,7 @@
 #include <QtGui/QFontMetrics>
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtGui/QMenu>
 #include "textgraphicsitem.h"
 #include "panelapplication.h"
 #include "panelwindow.h"
@@ -133,6 +134,14 @@ void DockItem::animate()
 		m_animationTimer->start();
 }
 
+void DockItem::close()
+{
+	for(int i = 0; i < m_clients.size(); i++)
+	{
+		X11Support::closeWindow(m_clients[i]->handle());
+	}
+}
+
 QRectF DockItem::boundingRect() const
 {
 	return QRectF(0.0, 0.0, m_size.width() - 1, m_size.height() - 1);
@@ -189,6 +198,13 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 					X11Support::minimizeWindow(m_clients[0]->handle());
 				else
 					X11Support::activateWindow(m_clients[0]->handle());
+			}
+
+			if(event->button() == Qt::RightButton)
+			{
+				QMenu menu;
+				menu.addAction(QIcon::fromTheme("window-close"), "Close", this, SLOT(close()))->setIconVisibleInMenu(true);
+				menu.exec(event->screenPos());
 			}
 		}
 	}

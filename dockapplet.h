@@ -44,6 +44,7 @@ public:
 
 public slots:
 	void animate();
+	void close();
 
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
