@@ -183,10 +183,13 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			if(m_clients.isEmpty())
 				return;
 
-			if(m_dockApplet->activeWindow() == m_clients[0]->handle())
-				X11Support::minimizeWindow(m_clients[0]->handle());
-			else
-				X11Support::activateWindow(m_clients[0]->handle());
+			if(event->button() == Qt::LeftButton)
+			{
+				if(m_dockApplet->activeWindow() == m_clients[0]->handle())
+					X11Support::minimizeWindow(m_clients[0]->handle());
+				else
+					X11Support::activateWindow(m_clients[0]->handle());
+			}
 		}
 	}
 }
