@@ -301,7 +301,7 @@ DockApplet::DockApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow), m_dragging(false)
 {
 	// Register for notifications about window property changes.
-	connect(PanelApplication::instance(), SIGNAL(windowPropertyChanged(ulong,ulong)), this, SLOT(windowPropertyChanged(ulong,ulong)));
+	connect(X11Support::instance(), SIGNAL(windowPropertyChanged(ulong,ulong)), this, SLOT(windowPropertyChanged(ulong,ulong)));
 }
 
 DockApplet::~DockApplet()

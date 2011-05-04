@@ -36,6 +36,24 @@ X11Support::~X11Support()
 	m_instance = NULL;
 }
 
+void X11Support::onX11Event(XEvent* event)
+{
+	if(event->type == m_damageEventBase + XDamageNotify)
+	{
+		// Repair damaged area.
+		XDamageNotifyEvent* damageEvent = reinterpret_cast<XDamageNotifyEvent*>(event);
+		XDamageSubtract(QX11Info::display(), damageEvent->damage, None, None);
+
+		emit windowDamaged(event->xany.window);
+	}
+	if(event->type == DestroyNotify)
+		emit windowClosed(event->xdestroywindow.window);
+	if(event->type == PropertyNotify)
+		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
+	if(event->type == ClientMessage)
+		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);
+}
+
 unsigned long X11Support::rootWindow()
 {
 	return QX11Info::appRootWindow();

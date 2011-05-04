@@ -1,12 +1,6 @@
 #include "panelapplication.h"
 
-#include <QtGui/QX11Info>
 #include "x11support.h"
-
-// Xlib is needed here for XEvent declaration (used in x11EventFilter).
-// Keep all the X11 stuff with scary defines below normal headers.
-#include <X11/Xlib.h>
-#include <X11/extensions/Xdamage.h>
 
 PanelApplication* PanelApplication::m_instance = NULL;
 
@@ -39,19 +33,6 @@ PanelApplication::~PanelApplication()
 
 bool PanelApplication::x11EventFilter(XEvent* event)
 {
-	if(event->type == X11Support::damageEventBase() + XDamageNotify)
-	{
-		// Repair damaged area.
-		XDamageNotifyEvent* damageEvent = reinterpret_cast<XDamageNotifyEvent*>(event);
-		XDamageSubtract(QX11Info::display(), damageEvent->damage, None, None);
-
-		emit windowDamaged(event->xany.window);
-	}
-	if(event->type == DestroyNotify)
-		emit windowClosed(event->xdestroywindow.window);
-	if(event->type == PropertyNotify)
-		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
-	if(event->type == ClientMessage)
-		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);
+	m_x11support->onX11Event(event);
 	return false;
 }

@@ -85,9 +85,9 @@ bool TrayApplet::init()
 		return false;
 	}
 
-	connect(PanelApplication::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
-	connect(PanelApplication::instance(), SIGNAL(windowDamaged(ulong)), this, SLOT(windowDamaged(ulong)));
-	connect(PanelApplication::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
+	connect(X11Support::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
+	connect(X11Support::instance(), SIGNAL(windowDamaged(ulong)), this, SLOT(windowDamaged(ulong)));
+	connect(X11Support::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 
 	return true;
 }

@@ -14,6 +14,13 @@ public:
 	X11Support();
 	~X11Support();
 
+	void onX11Event(XEvent* event);
+
+	static X11Support* instance()
+	{
+		return m_instance;
+	}
+
 	static unsigned long rootWindow();
 	static unsigned long atom(const QString& name);
 
@@ -47,10 +54,11 @@ public:
 	static void mapWindow(unsigned long window);
 	static void reparentWindow(unsigned long window, unsigned long parent);
 
-	static unsigned long damageEventBase()
-	{
-		return m_instance->m_damageEventBase;
-	}
+signals:
+	void windowClosed(unsigned long window);
+	void windowDamaged(unsigned long window);
+	void windowPropertyChanged(unsigned long window, unsigned long atom);
+	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
 
 private:
 	static unsigned long systemTrayAtom();
