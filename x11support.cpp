@@ -220,6 +220,8 @@ QIcon X11Support::getWindowIcon(unsigned long window)
 bool X11Support::getWindowUrgency(unsigned long window)
 {
 	XWMHints* hints = XGetWMHints(QX11Info::display(), window);
+	if(hints == NULL)
+		return false;
 	bool isUrgent = (hints->flags & 256) != 0; // UrgencyHint
 	XFree(hints);
 	return isUrgent;
