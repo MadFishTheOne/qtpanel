@@ -2,6 +2,7 @@
 #define PANELAPPLICATION_H
 
 #include <QtGui/QApplication>
+#include <QtGui/QFont>
 #include "panelwindow.h"
 
 class X11Support;
@@ -20,10 +21,34 @@ public:
 
 	bool x11EventFilter(XEvent* event);
 
+	void init();
+	void saveSettings();
+
+	void reset();
+
+	void setFontName(const QString& fontName);
+	void setIconThemeName(const QString& iconThemeName);
+
+	const QFont& panelFont() const
+	{
+		return m_panelFont;
+	}
+
+public slots:
+	void showConfigurationDialog();
+
+private slots:
+	void reinit();
+
 private:
 	static PanelApplication* m_instance;
 	X11Support* m_x11support;
-	PanelWindow* m_panelWindow;
+
+	QString m_fontName;
+	QString m_iconThemeName;
+	QString m_defaultIconThemeName;
+	QFont m_panelFont;
+	QVector<PanelWindow*> m_panelWindows;
 };
 
 #endif

@@ -104,10 +104,7 @@ public:
 
 	void updatePosition();
 
-	const QFont& font() const
-	{
-		return m_font;
-	}
+	const QFont& font() const;
 
 	int textBaseLine();
 
@@ -130,7 +127,6 @@ private:
 	Orientation m_orientation;
 	LayoutPolicy m_layoutPolicy;
 
-	QFont m_font;
 	QGraphicsScene* m_scene;
 	QGraphicsView* m_view;
 	PanelWindowGraphicsItem* m_panelItem;

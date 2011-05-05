@@ -231,7 +231,7 @@ void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 			if(event->button() == Qt::RightButton)
 			{
 				QMenu menu;
-				menu.addAction(QIcon::fromTheme("window-close"), "Close", this, SLOT(close()))->setIconVisibleInMenu(true);
+				menu.addAction(QIcon::fromTheme("window-close"), "Close", this, SLOT(close()));
 				menu.exec(event->screenPos());
 			}
 		}

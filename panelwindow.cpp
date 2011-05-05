@@ -8,6 +8,7 @@
 #include <QtGui/QGraphicsView>
 #include <QtGui/QMenu>
 #include "x11support.h"
+#include "panelapplication.h"
 
 #include "applicationsmenuapplet.h"
 #include "dockapplet.h"
@@ -74,9 +75,6 @@ PanelWindow::PanelWindow()
 {
 	setStyleSheet("background-color: transparent");
 	setAttribute(Qt::WA_TranslucentBackground);
-
-	// TODO: Make this configurable.
-	m_font = QFont("Droid Sans", 11);
 
 	m_scene = new QGraphicsScene();
 	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
@@ -268,9 +266,14 @@ void PanelWindow::updatePosition()
 	X11Support::setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
 }
 
+const QFont& PanelWindow::font() const
+{
+	return PanelApplication::instance()->panelFont();
+}
+
 int PanelWindow::textBaseLine()
 {
-	QFontMetrics metrics(m_font);
+	QFontMetrics metrics(font());
 	return (height() - metrics.height())/2 + metrics.ascent();
 }
 
@@ -361,6 +364,7 @@ void PanelWindow::updateLayout()
 void PanelWindow::showPanelContextMenu(const QPoint& point)
 {
 	QMenu menu;
-	menu.addAction(QIcon::fromTheme("application-exit"), "Quit panel", QApplication::instance(), SLOT(quit()))->setIconVisibleInMenu(true);
+	menu.addAction(QIcon::fromTheme("preferences-desktop"), "Configure...", PanelApplication::instance(), SLOT(showConfigurationDialog()));
+	menu.addAction(QIcon::fromTheme("application-exit"), "Quit panel", QApplication::instance(), SLOT(quit()));
 	menu.exec(pos() + point);
 }
