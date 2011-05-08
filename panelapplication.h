@@ -5,7 +5,9 @@
 #include <QtGui/QFont>
 #include "panelwindow.h"
 
+class IconLoader;
 class X11Support;
+class DesktopApplications;
 
 class PanelApplication: public QApplication
 {
@@ -42,7 +44,9 @@ private slots:
 
 private:
 	static PanelApplication* m_instance;
+	IconLoader* m_iconLoader;
 	X11Support* m_x11support;
+	DesktopApplications* m_desktopApplications;
 
 	QString m_fontName;
 	QString m_iconThemeName;

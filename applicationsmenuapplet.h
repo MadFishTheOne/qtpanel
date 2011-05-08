@@ -1,7 +1,7 @@
 #ifndef APPLICATIONSMENUAPPLET_H
 #define APPLICATIONSMENUAPPLET_H
 
-#include <QtCore/QVector>
+#include <QtCore/QList>
 #include <QtCore/QMap>
 #include <QtGui/QAction>
 #include <QtGui/QPlastiqueStyle>
@@ -12,49 +12,6 @@ class ApplicationsMenuStyle: public QPlastiqueStyle
 	Q_OBJECT
 public:
 	int pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const;
-};
-
-class DesktopFile
-{
-public:
-	bool init(const QString& fileName);
-
-	const QString& name() const
-	{
-		return m_name;
-	}
-
-	const QString& exec() const
-	{
-		return m_exec;
-	}
-
-	const QString& icon() const
-	{
-		return m_icon;
-	}
-
-	const QStringList& categories() const
-	{
-		return m_categories;
-	}
-
-	void setAction(QAction* action)
-	{
-		m_action = action;
-	}
-
-	QAction* action()
-	{
-		return m_action;
-	}
-
-private:
-	QString m_name;
-	QString m_exec;
-	QString m_icon;
-	QStringList m_categories;
-	QAction* m_action;
 };
 
 class SubMenu
@@ -82,6 +39,7 @@ private:
 };
 
 class TextGraphicsItem;
+class DesktopApplication;
 
 class ApplicationsMenuApplet: public Applet
 {
@@ -100,18 +58,16 @@ protected:
 
 private slots:
 	void actionTriggered();
+	void applicationUpdated(const DesktopApplication& app);
+	void applicationRemoved(const QString& path);
 
 private:
-	void updateDesktopFiles();
-	void gatherDesktopFiles(const QString& path);
-	void desktopFileAdded(const QString& fileName);
-
 	ApplicationsMenuStyle m_style;
 	TextGraphicsItem* m_textItem;
 	bool m_menuOpened;
 	QMenu* m_menu;
-	QVector<SubMenu> m_subMenus;
-	QMap<QString, DesktopFile> m_desktopFiles;
+	QList<SubMenu> m_subMenus;
+	QMap<QString, QAction*> m_actions;
 };
 
 #endif

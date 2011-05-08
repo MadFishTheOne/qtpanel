@@ -2,7 +2,9 @@
 
 #include <QtCore/QSettings>
 #include <QtCore/QTimer>
+#include "iconloader.h"
 #include "x11support.h"
+#include "desktopapplications.h"
 #include "ui_panelapplicationsettings.h"
 
 PanelApplication* PanelApplication::m_instance = NULL;
@@ -17,13 +19,17 @@ PanelApplication::PanelApplication(int& argc, char** argv)
 	setOrganizationName("madfish");
 	setApplicationName("qtpanel");
 
+	m_iconLoader = new IconLoader();
 	m_x11support = new X11Support();
+	m_desktopApplications = new DesktopApplications();
 }
 
 PanelApplication::~PanelApplication()
 {
 	reset();
+	delete m_desktopApplications;
 	delete m_x11support;
+	delete m_iconLoader;
 
 	m_instance = NULL;
 }

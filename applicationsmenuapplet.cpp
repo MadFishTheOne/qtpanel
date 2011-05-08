@@ -1,15 +1,12 @@
 #include "applicationsmenuapplet.h"
 
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
-#include <QtCore/QProcess>
 #include <QtGui/QMenu>
 #include <QtGui/QStyle>
 #include <QtGui/QPixmap>
 #include <QtGui/QGraphicsScene>
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
+#include "desktopapplications.h"
 
 int ApplicationsMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const
 {
@@ -17,36 +14,6 @@ int ApplicationsMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* o
 		return 32;
 	else
 		return QPlastiqueStyle::pixelMetric(metric, option, widget);
-}
-
-bool DesktopFile::init(const QString& fileName)
-{
-	QFile file(fileName);
-	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
-		return false;
-	QTextStream in(&file);
-	while(!in.atEnd())
-	{
-		QString line = in.readLine();
-		if(line[0] == '[' || line[0] == '#')
-			continue;
-		QStringList list = line.split('=');
-		if(list.size() < 2)
-			continue;
-		QString key = list[0];
-		QString value = list[1];
-		if(key == "NoDisplay" && value == "true")
-			return false;
-		if(key == "Name")
-			m_name = value;
-		if(key == "Exec")
-			m_exec = value;
-		if(key == "Icon")
-			m_icon = value;
-		if(key == "Categories")
-			m_categories = value.split(";", QString::SkipEmptyParts);
-	}
-	return true;
 }
 
 SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon)
@@ -87,15 +54,26 @@ ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 
 ApplicationsMenuApplet::~ApplicationsMenuApplet()
 {
+	foreach(QAction* action, m_actions)
+	{
+		delete action;
+	}
+
 	delete m_textItem;
 	delete m_menu;
 }
 
 bool ApplicationsMenuApplet::init()
 {
-	updateDesktopFiles();
-
 	setInteractive(true);
+
+	connect(DesktopApplications::instance(), SIGNAL(applicationUpdated(DesktopApplication)), this, SLOT(applicationUpdated(DesktopApplication)));
+	connect(DesktopApplications::instance(), SIGNAL(applicationRemoved(QString)), this, SLOT(applicationRemoved(QString)));
+
+	QList<DesktopApplication> apps = DesktopApplications::instance()->applications();
+	foreach(const DesktopApplication& app, apps)
+		applicationUpdated(app);
+
 	return true;
 }
 
@@ -108,14 +86,6 @@ void ApplicationsMenuApplet::clicked()
 {
 	m_menuOpened = true;
 	animateHighlight();
-
-	// Re-init submenus here to keep order stable.
-	m_menu->clear();
-	for(int i = 0; i < m_subMenus.size(); i++)
-	{
-		if(m_subMenus[i].menu()->actions().size() > 0)
-			m_menu->addMenu(m_subMenus[i].menu());
-	}
 
 	m_menu->move(localToScreen(QPoint(0, m_size.height())));
 	m_menu->exec();
@@ -136,95 +106,80 @@ bool ApplicationsMenuApplet::isHighlighted()
 
 void ApplicationsMenuApplet::actionTriggered()
 {
-	QString exec = static_cast<QAction*>(sender())->data().toString();
+	DesktopApplications::instance()->launch(static_cast<QAction*>(sender())->data().toString());
+}
 
-	// Handle special arguments.
-	for(;;)
+void ApplicationsMenuApplet::applicationUpdated(const DesktopApplication& app)
+{
+	applicationRemoved(app.path());
+
+	if(app.isNoDisplay())
+		return;
+
+	QAction* action = new QAction(m_menu);
+	action->setIconVisibleInMenu(true);
+	action->setData(app.path());
+	action->setText(app.name());
+	action->setIcon(QIcon(QPixmap::fromImage(app.iconImage())));
+
+	connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
+
+	// Add to relevant menu.
+	int subMenuIndex = m_subMenus.size() - 1; // By default put it in "Other".
+	for(int i = 0; i < m_subMenus.size() - 1; i++) // Without "Other".
 	{
-		int argPos = exec.indexOf('%');
-		if(argPos == -1)
+		if(app.categories().contains(m_subMenus[i].category()))
+		{
+			subMenuIndex = i;
 			break;
-		// For now, just remove them.
-		int spacePos = exec.indexOf(' ', argPos);
-		if(spacePos == -1)
-			exec.resize(argPos);
-		else
-			exec.remove(argPos, spacePos - argPos);
-	}
-
-	exec = exec.trimmed();
-	QStringList args = exec.split(' ');
-	QString process = args[0];
-	args.removeAt(0);
-	QProcess::startDetached(process, args, getenv("HOME"));
-}
-
-void ApplicationsMenuApplet::updateDesktopFiles()
-{
-	m_desktopFiles.clear();
-	gatherDesktopFiles("/usr/share/applications");
-}
-
-void ApplicationsMenuApplet::gatherDesktopFiles(const QString& path)
-{
-	QDir dir(path);
-	QStringList list = dir.entryList(QStringList("*.desktop"));
-	foreach(const QString& fileName, list)
-	{
-		desktopFileAdded(dir.path() + '/' + fileName);
-	}
-	// Traverse subdirectories recursively.
-	// Apparently, KDE keeps all it's programs in a subdirectory.
-	QStringList subDirList = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-	foreach(const QString& subDirName, subDirList)
-	{
-		gatherDesktopFiles(path + '/' + subDirName);
-	}
-}
-
-void ApplicationsMenuApplet::desktopFileAdded(const QString& fileName)
-{
-	DesktopFile desktopFile;
-	if(desktopFile.init(fileName))
-	{
-		m_desktopFiles[fileName] = desktopFile;
-
-		QAction* action = new QAction(m_menu); // Will be deleted automatically.
-		action->setText(desktopFile.name());
-		QIcon icon = QIcon::fromTheme(desktopFile.icon());
-		if(icon.isNull())
-		{
-			if(desktopFile.icon().contains('/'))
-				icon = QIcon(desktopFile.icon());
-			else
-				icon = QIcon("/usr/share/pixmaps/" + desktopFile.icon());
 		}
-		int iconSize = m_menu->style()->pixelMetric(QStyle::PM_SmallIconSize);
-		if(!icon.availableSizes().empty())
-		{
-			if(!icon.availableSizes().contains(QSize(iconSize, iconSize)))
-			{
-				QPixmap pixmap = icon.pixmap(256); // Any big size here is fine (at least for now).
-				QPixmap scaledPixmap = pixmap.scaled(QSize(iconSize, iconSize), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-				icon = QIcon(scaledPixmap);
-			}
-		}
-		action->setIcon(icon);
-		action->setIconVisibleInMenu(true);
-		action->setData(desktopFile.exec());
-		connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
+	}
 
-		// Add to relevant menu.
-		int subMenuIndex = m_subMenus.size() - 1; // By default put it in "Other".
-		for(int i = 0; i < m_subMenus.size() - 1; i++) // Without "Other".
+	QMenu* menu = m_subMenus[subMenuIndex].menu();
+	QList<QAction*> actions = menu->actions();
+	QAction* before = NULL;
+	for(int i = 0; i < actions.size(); i++)
+	{
+		if(actions[i]->text().compare(action->text(), Qt::CaseInsensitive) > 0)
 		{
-			if(desktopFile.categories().contains(m_subMenus[i].category()))
+			before = actions[i];
+			break;
+		}
+	}
+
+	if(menu->actions().isEmpty())
+	{
+		QList<QAction*> actions = m_menu->actions();
+		QAction* before = NULL;
+		for(int i = 0; i < actions.size(); i++)
+		{
+			if(actions[i]->text().compare(menu->title(), Qt::CaseInsensitive) > 0)
 			{
-				subMenuIndex = i;
+				before = actions[i];
 				break;
 			}
 		}
-		m_subMenus[subMenuIndex].menu()->addAction(action);
-		desktopFile.setAction(action);
+
+		m_menu->insertMenu(before, menu);
+	}
+
+	menu->insertAction(before, action);
+
+
+	m_actions[app.path()] = action;
+}
+
+void ApplicationsMenuApplet::applicationRemoved(const QString& path)
+{
+	if(m_actions.contains(path))
+	{
+		delete m_actions[path];
+		m_actions.remove(path);
+	}
+
+	for(int i = 0; i < m_subMenus.size(); i++)
+	{
+		if(m_subMenus[i].menu()->actions().isEmpty())
+			m_menu->removeAction(m_subMenus[i].menu()->menuAction());
 	}
 }

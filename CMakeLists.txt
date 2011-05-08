@@ -6,11 +6,13 @@ set(qtpanel_UIS
 	panelapplicationsettings.ui
 )
 set(qtpanel_HEADERS
+	iconloader.h
 	textgraphicsitem.h
 	animationutils.h
 )
 set(qtpanel_MOC_HEADERS
 	x11support.h
+	desktopapplications.h
 	panelapplication.h
 	panelwindow.h
 	applet.h
@@ -22,7 +24,9 @@ set(qtpanel_MOC_HEADERS
 	trayapplet.h
 )
 set(qtpanel_SOURCES
+	iconloader.cpp
 	x11support.cpp
+	desktopapplications.cpp
 	main.cpp
 	panelapplication.cpp
 	panelwindow.cpp
