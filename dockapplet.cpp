@@ -198,42 +198,49 @@ void DockItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 
 void DockItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-	m_mouseDownPosition = event->scenePos();
-	m_dragStartPosition = m_position;
+	if(event->button() == Qt::LeftButton)
+	{
+		m_dragging = true;
+		m_mouseDownPosition = event->scenePos();
+		m_dragStartPosition = m_position;
+		m_dockApplet->draggingStarted();
+		setZValue(1.0); // Be on top when dragging.
+	}
 }
 
 void DockItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-	if(m_dragging)
+	if(event->button() == Qt::LeftButton)
 	{
 		m_dragging = false;
 		m_dockApplet->draggingStopped();
 		setZValue(0.0); // No more on top.
 		startAnimation(); // Item can be out of it's regular, start animation to bring it back.
 	}
-	else
+
+	if(isUnderMouse())
 	{
-		// Click is handled only in case of no dragging.
+		if(m_clients.isEmpty())
+			return;
 
-		if(isUnderMouse())
+		if(event->button() == Qt::LeftButton)
 		{
-			if(m_clients.isEmpty())
-				return;
+			static const qreal clickMouseMoveTolerance = 10.0;
 
-			if(event->button() == Qt::LeftButton)
+			if((event->scenePos() - m_mouseDownPosition).manhattanLength() < clickMouseMoveTolerance)
 			{
 				if(m_dockApplet->activeWindow() == m_clients[0]->handle())
 					X11Support::minimizeWindow(m_clients[0]->handle());
 				else
 					X11Support::activateWindow(m_clients[0]->handle());
 			}
+		}
 
-			if(event->button() == Qt::RightButton)
-			{
-				QMenu menu;
-				menu.addAction(QIcon::fromTheme("window-close"), "Close", this, SLOT(close()));
-				menu.exec(event->screenPos());
-			}
+		if(event->button() == Qt::RightButton && !m_dragging)
+		{
+			QMenu menu;
+			menu.addAction(QIcon::fromTheme("window-close"), "Close", this, SLOT(close()));
+			menu.exec(event->screenPos());
 		}
 	}
 }
@@ -242,15 +249,8 @@ void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
 	// Mouse events are sent only when mouse button is pressed.
 
-	if((event->buttons() & Qt::LeftButton) == 0)
-		return; // Dragging only with left button.
-
 	if(!m_dragging)
-	{
-		m_dragging = true;
-		m_dockApplet->draggingStarted();
-		setZValue(1.0); // Be on top when dragging.
-	}
+		return;
 
 	// TODO: Vertical orientation support.
 
@@ -275,13 +275,13 @@ void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void DockItem::updateClientsIconGeometry()
 {
-	QPointF topLeft = mapToScene(boundingRect().topLeft());
+	QPointF topLeft = m_dockApplet->mapToScene(m_targetPosition);
 	QVector<unsigned long> values;
 	values.resize(4);
 	values[0] = static_cast<unsigned long>(topLeft.x()) + m_dockApplet->panelWindow()->pos().x();
 	values[1] = static_cast<unsigned long>(topLeft.y()) + m_dockApplet->panelWindow()->pos().y();
-	values[2] = m_size.width();
-	values[3] = m_size.height();
+	values[2] = m_targetSize.width();
+	values[3] = m_targetSize.height();
 	for(int i = 0; i < m_clients.size(); i++)
 	{
 		X11Support::setWindowPropertyCardinalArray(m_clients[i]->handle(), "_NET_WM_ICON_GEOMETRY", values);
