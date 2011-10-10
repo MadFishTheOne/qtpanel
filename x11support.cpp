@@ -48,6 +48,8 @@ void X11Support::onX11Event(XEvent* event)
 	}
 	if(event->type == DestroyNotify)
 		emit windowClosed(event->xdestroywindow.window);
+	if(event->type == ConfigureNotify)
+		emit windowReconfigured(event->xconfigure.window, event->xconfigure.x, event->xconfigure.y, event->xconfigure.width, event->xconfigure.height);
 	if(event->type == PropertyNotify)
 		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
 	if(event->type == ClientMessage)

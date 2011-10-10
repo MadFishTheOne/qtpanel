@@ -57,6 +57,7 @@ public:
 
 signals:
 	void windowClosed(unsigned long window);
+	void windowReconfigured(unsigned long window, int x, int y, int width, int height);
 	void windowDamaged(unsigned long window);
 	void windowPropertyChanged(unsigned long window, unsigned long atom);
 	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);

@@ -86,6 +86,7 @@ bool TrayApplet::init()
 	}
 
 	connect(X11Support::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
+	connect(X11Support::instance(), SIGNAL(windowReconfigured(ulong,int,int,int,int)), this, SLOT(windowReconfigured(ulong,int,int,int,int)));
 	connect(X11Support::instance(), SIGNAL(windowDamaged(ulong)), this, SLOT(windowDamaged(ulong)));
 	connect(X11Support::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
 
@@ -136,6 +137,18 @@ void TrayApplet::windowClosed(unsigned long window)
 		if(m_trayItems[i]->window() == window)
 		{
 			delete m_trayItems[i];
+			break;
+		}
+	}
+}
+
+void TrayApplet::windowReconfigured(unsigned long window, int x, int y, int width, int height)
+{
+	for(int i = 0; i < m_trayItems.size(); i++)
+	{
+		if(m_trayItems[i]->window() == window)
+		{
+			X11Support::resizeWindow(window, 24, 24);
 			break;
 		}
 	}
