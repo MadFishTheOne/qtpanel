@@ -375,3 +375,8 @@ void X11Support::reparentWindow(unsigned long window, unsigned long parent)
 	XReparentWindow(QX11Info::display(), window, parent, 0, 0);
 	XSync(QX11Info::display(), False);
 }
+
+void X11Support::setWindowBackgroundBlack(unsigned long window)
+{
+	XSetWindowBackground(QX11Info::display(), window, BlackPixel(QX11Info::display(), QX11Info::appScreen()));
+}

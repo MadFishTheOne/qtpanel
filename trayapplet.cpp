@@ -11,6 +11,10 @@ TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 {
 	setParentItem(m_trayApplet);
 
+	// This is needed for non-composited tray icons, otherwise we'll get a BadMatch on reparent attempt.
+	// Doesn't affect composited icons.
+	X11Support::setWindowBackgroundBlack(m_window);
+
 	X11Support::registerForTrayIconUpdates(m_window);
 	X11Support::reparentWindow(m_window, m_trayApplet->panelWindow()->winId());
 	X11Support::resizeWindow(m_window, 24, 24);

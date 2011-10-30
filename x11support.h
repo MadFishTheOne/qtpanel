@@ -54,6 +54,7 @@ public:
 	static void moveWindow(unsigned long window, int x, int y);
 	static void mapWindow(unsigned long window);
 	static void reparentWindow(unsigned long window, unsigned long parent);
+	static void setWindowBackgroundBlack(unsigned long window);
 
 signals:
 	void windowClosed(unsigned long window);
