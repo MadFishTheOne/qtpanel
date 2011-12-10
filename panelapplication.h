@@ -24,7 +24,6 @@ public:
 	bool x11EventFilter(XEvent* event);
 
 	void init();
-	void saveSettings();
 
 	void reset();
 
@@ -50,6 +49,7 @@ private:
 
 	QString m_fontName;
 	QString m_iconThemeName;
+	PanelWindow::Anchor m_verticalAnchor;
 	QString m_defaultIconThemeName;
 	QFont m_panelFont;
 	QVector<PanelWindow*> m_panelWindows;

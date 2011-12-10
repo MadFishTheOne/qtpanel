@@ -47,11 +47,14 @@ void PanelApplication::showConfigurationDialog()
 	settingsUi.setupUi(&dialog);
 	settingsUi.fontName->setText(m_fontName);
 	settingsUi.iconThemeName->setText(m_iconThemeName);
+	settingsUi.verticalPosition->setCurrentIndex(m_verticalAnchor == PanelWindow::Max ? 1 : 0);
 	if(dialog.exec() == QDialog::Accepted)
 	{
-		setFontName(settingsUi.fontName->text());
-		setIconThemeName(settingsUi.iconThemeName->text());
-		saveSettings();
+		QSettings settings;
+		settings.setValue("fontName", settingsUi.fontName->text());
+		settings.setValue("iconThemeName", settingsUi.iconThemeName->text());
+		settings.setValue("verticalPosition", settingsUi.verticalPosition->currentText());
+
 		// Don't want to delete objects right now (because we're called from those objects), schedule it for later.
 		QTimer::singleShot(1, this, SLOT(reinit()));
 	}
@@ -68,23 +71,21 @@ void PanelApplication::init()
 	QSettings settings;
 	setFontName(settings.value("fontName", "default").toString());
 	setIconThemeName(settings.value("iconThemeName", "default").toString());
+	QString verticalPosition = settings.value("verticalPosition", "Top").toString();
+	if(verticalPosition == "Top")
+		m_verticalAnchor = PanelWindow::Min;
+	else if(verticalPosition == "Bottom")
+		m_verticalAnchor = PanelWindow::Max;
 
 	PanelWindow* panelWindow = new PanelWindow();
 	panelWindow->resize(128, 32);
 	panelWindow->setLayoutPolicy(PanelWindow::FillSpace);
-	//panelWindow->setVerticalAnchor(PanelWindow::Max);
+	panelWindow->setVerticalAnchor(m_verticalAnchor);
 	panelWindow->setDockMode(true);
 	panelWindow->init();
 	panelWindow->show();
 
 	m_panelWindows.append(panelWindow);
-}
-
-void PanelApplication::saveSettings()
-{
-	QSettings settings;
-	settings.setValue("fontName", m_fontName);
-	settings.setValue("iconThemeName", m_iconThemeName);
 }
 
 void PanelApplication::reset()
