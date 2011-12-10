@@ -135,8 +135,8 @@ void DockItem::animate()
 	{
 		static const int positionAnimationSpeed = 24;
 		static const int sizeAnimationSpeed = 24;
-		m_position.setX(AnimationUtils::animate(m_position.x(), m_targetPosition.x(), positionAnimationSpeed, needAnotherStep));
-		m_position.setY(AnimationUtils::animate(m_position.y(), m_targetPosition.y(), positionAnimationSpeed, needAnotherStep));
+		m_position.setX(AnimationUtils::animateExponentially(m_position.x(), m_targetPosition.x(), 0.2, positionAnimationSpeed, needAnotherStep));
+		m_position.setY(AnimationUtils::animateExponentially(m_position.y(), m_targetPosition.y(), 0.2, positionAnimationSpeed, needAnotherStep));
 		m_size.setWidth(AnimationUtils::animate(m_size.width(), m_targetSize.width(), sizeAnimationSpeed, needAnotherStep));
 		m_size.setHeight(AnimationUtils::animate(m_size.height(), m_targetSize.height(), sizeAnimationSpeed, needAnotherStep));
 		setPos(m_position.x(), m_position.y());
