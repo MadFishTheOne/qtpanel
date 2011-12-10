@@ -28,7 +28,6 @@ void IconTheme::init(const QString& themeName)
 
 		QTextStream in(&file);
 		QString context;
-		QList<IconDirectory> dirs;
 		while(!in.atEnd())
 		{
 			QString line = in.readLine();
@@ -47,7 +46,7 @@ void IconTheme::init(const QString& themeName)
 					dir.m_path = context;
 					dir.m_size = 0;
 					dir.m_scalable = false;
-					dirs.append(dir);
+					m_iconDirs.append(dir);
 				}
 			}
 
@@ -62,71 +61,63 @@ void IconTheme::init(const QString& themeName)
 
 			if(key == "Size")
 			{
-				dirs.last().m_size = value.toInt();
+				m_iconDirs.last().m_size = value.toInt();
 			}
 
 			if(key == "Type")
 			{
 				if(value.compare("Scalable", Qt::CaseInsensitive) == 0)
-					dirs.last().m_scalable = true;
-			}
-		}
-
-		foreach(const IconDirectory& iconDir, dirs)
-		{
-			foreach(const QString& searchPath, IconLoader::instance()->iconSearchPaths())
-			{
-				QDir dir(searchPath + "/" + m_themeName + "/" + iconDir.m_path);
-				if(!dir.exists())
-					continue;
-				QFileInfoList files = dir.entryInfoList(QDir::Files);
-				foreach(const QFileInfo& file, files)
-				{
-					Icon icon;
-					icon.m_path = file.canonicalFilePath();
-					icon.m_size = iconDir.m_size;
-					icon.m_scalable = iconDir.m_scalable;
-					m_icons[file.completeBaseName()].append(icon);
-				}
+					m_iconDirs.last().m_scalable = true;
 			}
 		}
 	}
 }
 
+bool IconTheme::loadIconFromDirectory(QImage& result, const IconDirectory& iconDir, const QString& fileName)
+{
+	foreach(const QString& searchPath, IconLoader::instance()->iconSearchPaths())
+	{
+		QString iconFileName = searchPath + "/" + m_themeName + "/" + iconDir.m_path + "/" + fileName;
+		if(!QFile::exists(iconFileName))
+			continue;
+		result.load(iconFileName);
+		if(!result.isNull())
+			return true;
+	}
+	return false;
+}
+
 QImage IconTheme::loadIcon(const QString& iconName, int size)
 {
-	QString name = iconName;
-	if(name.endsWith(".png"))
-		name.chop(4);
+	QString fileName = iconName;
+	if(!fileName.endsWith(".png"))
+		fileName.append(".png");
 
 	QImage result;
 
-	foreach(const Icon& icon, m_icons[name])
+	foreach(const IconDirectory& iconDir, m_iconDirs)
 	{
-		if(icon.m_size == size && !icon.m_scalable)
+		if(!iconDir.m_scalable && iconDir.m_size == size)
 		{
-			result.load(icon.m_path);
-			if(!result.isNull())
+			if(loadIconFromDirectory(result, iconDir, fileName))
 				return result;
 		}
 	}
 
-	foreach(const Icon& icon, m_icons[name])
+	foreach(const IconDirectory& iconDir, m_iconDirs)
 	{
-		if(icon.m_size > size && !icon.m_scalable)
+		if(!iconDir.m_scalable && iconDir.m_size > size)
 		{
-			result.load(icon.m_path);
-			if(!result.isNull())
+			if(loadIconFromDirectory(result, iconDir, fileName))
 				return result;
 		}
 	}
 
-	foreach(const Icon& icon, m_icons[name])
+	foreach(const IconDirectory& iconDir, m_iconDirs)
 	{
-		if(!icon.m_scalable)
+		if(!iconDir.m_scalable)
 		{
-			result.load(icon.m_path);
-			if(!result.isNull())
+			if(loadIconFromDirectory(result, iconDir, fileName))
 				return result;
 		}
 	}

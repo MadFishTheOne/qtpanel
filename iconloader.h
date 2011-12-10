@@ -24,16 +24,18 @@ public:
 	}
 
 private:
-	struct Icon
+	struct IconDirectory
 	{
+		QString m_path;
 		int m_size;
 		bool m_scalable;
-		QString m_path;
 	};
+
+	bool loadIconFromDirectory(QImage& result, const IconDirectory& iconDir, const QString& fileName);
 
 	QString m_themeName;
 	QStringList m_inheritedThemes;
-	QMap<QString, QList<Icon> > m_icons;
+	QList<IconDirectory> m_iconDirs;
 };
 
 class IconLoader
