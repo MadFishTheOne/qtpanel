@@ -129,6 +129,11 @@ void TrayApplet::clientMessageReceived(unsigned long window, unsigned long atom,
 		unsigned long* l = reinterpret_cast<unsigned long*>(data);
 		if(l[1] == 0) // TRAY_REQUEST_DOCK
 		{
+			for(int i = 0; i < m_trayItems.size(); i++)
+			{
+				if(m_trayItems[i]->window() == l[2])
+					return; // Already added.
+			}
 			new TrayItem(this, l[2]);
 		}
 	}
