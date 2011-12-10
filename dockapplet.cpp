@@ -416,6 +416,9 @@ bool DockApplet::init()
 	updateClientList();
 	updateActiveWindow();
 
+	for(int i = 0; i < m_dockItems.size(); i++)
+		m_dockItems[i]->moveInstantly();
+
 	return true;
 }
 
