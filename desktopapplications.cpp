@@ -29,7 +29,14 @@ bool DesktopApplication::init(const QString& path)
 	while(!in.atEnd())
 	{
 		QString line = in.readLine();
-		if(line[0] == '[' || line[0] == '#')
+		if(line[0] == '[')
+		{
+			if(line.contains("Desktop Entry"))
+				continue;
+			else
+				break; // We only process "Desktop Entry" here.
+		}
+		if(line[0] == '#')
 			continue;
 		QStringList list = line.split('=');
 		if(list.size() < 2)
