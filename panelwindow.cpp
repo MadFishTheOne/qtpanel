@@ -224,12 +224,12 @@ void PanelWindow::updatePosition()
 		switch(m_horizontalAnchor)
 		{
 		case Min:
-			values[0] = width();
+			values[0] = x + width();
 			values[4] = y;
 			values[5] = y + height();
 			break;
 		case Max:
-			values[1] = width();
+			values[1] = QApplication::desktop()->width() - x;
 			values[6] = y;
 			values[7] = y + height();
 			break;
@@ -239,12 +239,12 @@ void PanelWindow::updatePosition()
 		switch(m_verticalAnchor)
 		{
 		case Min:
-			values[2] = height();
+			values[2] = y + height();
 			values[8] = x;
 			values[9] = x + width();
 			break;
 		case Max:
-			values[3] = height();
+			values[3] = QApplication::desktop()->height() - y;
 			values[10] = x;
 			values[11] = x + width();
 			break;
