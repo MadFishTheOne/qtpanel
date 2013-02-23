@@ -46,6 +46,8 @@ public:
 	void registerTrayItem(TrayItem* trayItem);
 	void unregisterTrayItem(TrayItem* trayItem);
 
+	int iconSize() const { return m_iconSize; }
+
 protected:
 	void layoutChanged();
 
@@ -60,6 +62,8 @@ private:
 
 	bool m_initialized;
 	QVector<TrayItem*> m_trayItems;
+	int m_iconSize;
+	int m_spacing;
 };
 
 #endif

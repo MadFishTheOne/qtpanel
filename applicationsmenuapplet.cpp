@@ -7,11 +7,12 @@
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
 #include "desktopapplications.h"
+#include "dpisupport.h"
 
 int ApplicationsMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, const QWidget* widget) const
 {
 	if(metric == QStyle::PM_SmallIconSize)
-		return 32;
+		return adjustHardcodedPixelSize(32);
 	else
 		return QPlastiqueStyle::pixelMetric(metric, option, widget);
 }
@@ -27,13 +28,26 @@ SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, c
 	m_category = category;
 }
 
+static const char* menuStyleSheet =
+"QMenu { background-color: black; }\n"
+"QMenu::item { height: %dpx; background-color: transparent; color: white; padding-left: %dpx; padding-right: %dpx; padding-top: %dpx; padding-bottom: %dpx; }\n"
+"QMenu::item::selected { background-color: #606060; border-color: gray; }\n"
+"QMenu::icon { left: %dpx; }\n";
+
 ApplicationsMenuApplet::ApplicationsMenuApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow), m_menuOpened(false)
 {
 	m_menu = new QMenu();
 	m_menu->setStyle(&m_style);
 	m_menu->setFont(m_panelWindow->font());
-	m_menu->setStyleSheet("QMenu { background-color: black; } QMenu::item { height: 36px; background-color: transparent; color: white; padding-left: 38px; padding-right: 20px; padding-top: 2px; padding-bottom: 2px; } QMenu::item::selected { background-color: #606060; border-color: gray; } QMenu::icon { left: 2px; }");
+	m_menu->setStyleSheet(QString().sprintf(menuStyleSheet,
+		adjustHardcodedPixelSize(36),
+		adjustHardcodedPixelSize(38),
+		adjustHardcodedPixelSize(20),
+		adjustHardcodedPixelSize(2),
+		adjustHardcodedPixelSize(2),
+		adjustHardcodedPixelSize(2)
+	));
 	m_subMenus.append(SubMenu(m_menu, "Accessories", "Utility", "applications-accessories"));
 	m_subMenus.append(SubMenu(m_menu, "Development", "Development", "applications-development"));
 	m_subMenus.append(SubMenu(m_menu, "Education", "Education", "applications-science"));
@@ -72,7 +86,7 @@ bool ApplicationsMenuApplet::init()
 
 	QList<DesktopApplication> apps = DesktopApplications::instance()->applications();
 	foreach(const DesktopApplication& app, apps)
-		applicationUpdated(app);
+	applicationUpdated(app);
 
 	return true;
 }

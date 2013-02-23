@@ -5,6 +5,7 @@
 #include "panelapplication.h"
 #include "panelwindow.h"
 #include "x11support.h"
+#include "dpisupport.h"
 
 TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 	: m_trayApplet(trayApplet), m_window(window)
@@ -17,7 +18,7 @@ TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
 
 	X11Support::registerForTrayIconUpdates(m_window);
 	X11Support::reparentWindow(m_window, m_trayApplet->panelWindow()->winId());
-	X11Support::resizeWindow(m_window, 24, 24);
+	X11Support::resizeWindow(m_window, m_trayApplet->iconSize(), m_trayApplet->iconSize());
 	X11Support::redirectWindow(m_window);
 	X11Support::mapWindow(m_window);
 
@@ -34,7 +35,10 @@ TrayItem::~TrayItem()
 void TrayItem::setPosition(const QPoint& position)
 {
 	setPos(position.x(), position.y());
-	X11Support::moveWindow(m_window, static_cast<int>(m_trayApplet->pos().x()) + position.x() + m_size.width()/2 - 12, static_cast<int>(m_trayApplet->pos().y()) + position.y() + m_size.height()/2 - 12);
+	X11Support::moveWindow(m_window,
+		static_cast<int>(m_trayApplet->pos().x()) + position.x() + m_size.width()/2 - m_trayApplet->iconSize()/2,
+		static_cast<int>(m_trayApplet->pos().y()) + position.y() + m_size.height()/2 - m_trayApplet->iconSize()/2
+	);
 }
 
 void TrayItem::setSize(const QSize& size)
@@ -53,18 +57,18 @@ void TrayItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 	// Background.
 	painter->setPen(Qt::NoPen);
 	QPointF center(m_size.width()/2.0, m_size.height()/2.0);
-	QRadialGradient gradient(center, 14.0, center);
+	QRadialGradient gradient(center, m_size.width()/2.0, center);
 	gradient.setColorAt(0.0, QColor(255, 255, 255, 80));
 	gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 	painter->setBrush(QBrush(gradient));
 	painter->drawRect(boundingRect());
 
 	// Icon itself.
-	painter->drawPixmap(m_size.width()/2 - 12, m_size.height()/2 - 12, X11Support::getWindowPixmap(m_window));
+	painter->drawPixmap(m_size.width()/2 - m_trayApplet->iconSize()/2, m_size.height()/2 - m_trayApplet->iconSize()/2, X11Support::getWindowPixmap(m_window));
 }
 
 TrayApplet::TrayApplet(PanelWindow* panelWindow)
-	: Applet(panelWindow), m_initialized(false)
+	: Applet(panelWindow), m_initialized(false), m_iconSize(adjustHardcodedPixelSize(24)), m_spacing(adjustHardcodedPixelSize(4))
 {
 }
 
@@ -99,7 +103,7 @@ bool TrayApplet::init()
 
 QSize TrayApplet::desiredSize()
 {
-	int desiredWidth = 28*m_trayItems.size() - 4;
+	int desiredWidth = (m_iconSize + m_spacing)*m_trayItems.size() - m_spacing;
 	if(desiredWidth < 0)
 		desiredWidth = 0;
 	return QSize(desiredWidth, -1);
@@ -157,7 +161,7 @@ void TrayApplet::windowReconfigured(unsigned long window, int x, int y, int widt
 	{
 		if(m_trayItems[i]->window() == window)
 		{
-			X11Support::resizeWindow(window, 24, 24);
+			X11Support::resizeWindow(window, m_iconSize, m_iconSize);
 			break;
 		}
 	}
@@ -180,8 +184,8 @@ void TrayApplet::updateLayout()
 	int currentPosition = 0;
 	for(int i = 0; i < m_trayItems.size(); i++)
 	{
-		m_trayItems[i]->setSize(QSize(28, m_size.height()));
+		m_trayItems[i]->setSize(QSize(m_iconSize, m_size.height()));
 		m_trayItems[i]->setPosition(QPoint(currentPosition, 0));
-		currentPosition += 28;
+		currentPosition += m_iconSize + m_spacing;
 	}
 }

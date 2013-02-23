@@ -4,6 +4,7 @@
 #include <QtCore/QTimer>
 #include "iconloader.h"
 #include "x11support.h"
+#include "dpisupport.h"
 #include "desktopapplications.h"
 #include "ui_panelapplicationsettings.h"
 
@@ -78,7 +79,7 @@ void PanelApplication::init()
 		m_verticalAnchor = PanelWindow::Max;
 
 	PanelWindow* panelWindow = new PanelWindow();
-	panelWindow->resize(128, 32);
+	panelWindow->resize(adjustHardcodedPixelSize(128), adjustHardcodedPixelSize(32));
 	panelWindow->setLayoutPolicy(PanelWindow::FillSpace);
 	panelWindow->setVerticalAnchor(m_verticalAnchor);
 	panelWindow->setDockMode(true);

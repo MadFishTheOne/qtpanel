@@ -12,6 +12,7 @@
 #include "panelwindow.h"
 #include "x11support.h"
 #include "animationutils.h"
+#include "dpisupport.h"
 
 DockItem::DockItem(DockApplet* dockApplet)
 	: m_dragging(false), m_highlightIntensity(0.0), m_urgencyHighlightIntensity(0.0)
@@ -52,12 +53,12 @@ void DockItem::updateContent()
 		return;
 
 	QFontMetrics fontMetrics(m_textItem->font());
-	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_targetSize.width() - 36);
+	QString shortName = fontMetrics.elidedText(m_clients[0]->name(), Qt::ElideRight, m_targetSize.width() - adjustHardcodedPixelSize(36));
 	m_textItem->setText(shortName);
-	m_textItem->setPos(28.0, m_dockApplet->panelWindow()->textBaseLine());
+	m_textItem->setPos(adjustHardcodedPixelSize(28), m_dockApplet->panelWindow()->textBaseLine());
 
-	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(16));
-	m_iconItem->setPos(8.0, m_targetSize.height()/2 - 8);
+	m_iconItem->setPixmap(m_clients[0]->icon().pixmap(adjustHardcodedPixelSize(16)));
+	m_iconItem->setPos(adjustHardcodedPixelSize(8), m_targetSize.height()/2 - adjustHardcodedPixelSize(8));
 
 	update();
 }
@@ -164,12 +165,12 @@ QRectF DockItem::boundingRect() const
 void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->setPen(Qt::NoPen);
-	QPointF center(m_size.width()/2.0, m_size.height() + 32.0);
-	QRectF rect(0.0, 4.0, m_size.width(), m_size.height() - 8.0);
-	static const qreal roundRadius = 3.0;
+	QPointF center(m_size.width()/2.0, m_size.height() + adjustHardcodedPixelSize(32));
+	QRectF rect(0.0, adjustHardcodedPixelSize(4), m_size.width(), m_size.height() - adjustHardcodedPixelSize(8));
+	static const qreal roundRadius = adjustHardcodedPixelSize(3);
 
 	{
-		QRadialGradient gradient(center, 200.0, center);
+		QRadialGradient gradient(center, adjustHardcodedPixelSize(200), center);
 		gradient.setColorAt(0.0, QColor(255, 255, 255, 80 + static_cast<int>(80*m_highlightIntensity)));
 		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 		painter->setBrush(QBrush(gradient));
@@ -178,7 +179,7 @@ void DockItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
 	if(m_urgencyHighlightIntensity > 0.001)
 	{
-		QRadialGradient gradient(center, 200.0, center);
+		QRadialGradient gradient(center, adjustHardcodedPixelSize(200), center);
 		gradient.setColorAt(0.0, QColor(255, 100, 0, static_cast<int>(160*m_urgencyHighlightIntensity)));
 		gradient.setColorAt(1.0, QColor(255, 255, 255, 0));
 		painter->setBrush(QBrush(gradient));
@@ -432,8 +433,9 @@ void DockApplet::updateLayout()
 	for(int i = 0; i < m_dockItems.size(); i++)
 	{
 		int spaceForThisClient = spaceForOneClient;
-		if(spaceForThisClient > 256)
-			spaceForThisClient = 256;
+		static const int maxSpace = adjustHardcodedPixelSize(256);
+		if(spaceForThisClient > maxSpace)
+			spaceForThisClient = maxSpace;
 		m_dockItems[i]->setTargetPosition(QPoint(currentPosition, 0));
 		m_dockItems[i]->setTargetSize(QSize(spaceForThisClient - 4, m_size.height()));
 		m_dockItems[i]->startAnimation();

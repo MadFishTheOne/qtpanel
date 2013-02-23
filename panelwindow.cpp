@@ -8,6 +8,7 @@
 #include <QtGui/QGraphicsView>
 #include <QtGui/QMenu>
 #include "x11support.h"
+#include "dpisupport.h"
 #include "panelapplication.h"
 
 #include "applicationsmenuapplet.h"
@@ -94,7 +95,7 @@ PanelWindow::PanelWindow()
 	m_applets.append(new TrayApplet(this));
 	m_applets.append(new ClockApplet(this));
 
-	resize(defaultWidth, defaultHeight);
+	resize(adjustHardcodedPixelSize(512), adjustHardcodedPixelSize(48));
 }
 
 PanelWindow::~PanelWindow()
@@ -289,7 +290,7 @@ void PanelWindow::updateLayout()
 {
 	// TODO: Vertical orientation support.
 
-	static const int spacing = 4;
+	static const int spacing = adjustHardcodedPixelSize(4);
 
 	if(m_layoutPolicy != Normal && !m_dockMode)
 	{

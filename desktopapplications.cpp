@@ -9,6 +9,7 @@
 #include <QtCore/QProcess>
 #include <QtGui/QIcon>
 #include "iconloader.h"
+#include "dpisupport.h"
 
 bool DesktopApplication::init(const QString& path)
 {
@@ -208,7 +209,7 @@ void DesktopApplications::run()
 
 			if(!iconName.isEmpty())
 			{
-				QImage iconImage = IconLoader::instance()->loadIcon(QIcon::themeName(), iconName, 32);
+				QImage iconImage = IconLoader::instance()->loadIcon(QIcon::themeName(), iconName, adjustHardcodedPixelSize(32));
 
 				m_applicationsMutex.lock();
 				if(m_applications.contains(path))

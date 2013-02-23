@@ -32,9 +32,6 @@ class PanelWindow: public QWidget
 {
 	Q_OBJECT
 public:
-	static const int defaultWidth = 512;
-	static const int defaultHeight = 48;
-
 	PanelWindow();
 	~PanelWindow();
 
