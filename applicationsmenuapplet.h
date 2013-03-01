@@ -3,11 +3,11 @@
 
 #include <QtCore/QList>
 #include <QtCore/QMap>
-#include <QtGui/QAction>
-#include <QtGui/QPlastiqueStyle>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QProxyStyle>
 #include "applet.h"
 
-class ApplicationsMenuStyle: public QPlastiqueStyle
+class ApplicationsMenuStyle: public QProxyStyle
 {
 	Q_OBJECT
 public:

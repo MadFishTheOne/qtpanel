@@ -35,12 +35,6 @@ PanelApplication::~PanelApplication()
 	m_instance = NULL;
 }
 
-bool PanelApplication::x11EventFilter(XEvent* event)
-{
-	m_x11support->onX11Event(event);
-	return false;
-}
-
 void PanelApplication::showConfigurationDialog()
 {
 	QDialog dialog;

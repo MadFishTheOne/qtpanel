@@ -4,9 +4,9 @@
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
 #include <QtGui/QFontMetrics>
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QtGui/QMenu>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QMenu>
 #include "textgraphicsitem.h"
 #include "panelapplication.h"
 #include "panelwindow.h"
@@ -26,7 +26,7 @@ DockItem::DockItem(DockApplet* dockApplet)
 	connect(m_animationTimer, SIGNAL(timeout()), this, SLOT(animate()));
 
 	setParentItem(m_dockApplet);
-	setAcceptsHoverEvents(true);
+	setAcceptHoverEvents(true);
 	setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 
 	m_textItem = new TextGraphicsItem(this);

@@ -1,7 +1,7 @@
 #include "dpisupport.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
 
 int adjustHardcodedPixelSize(int size)
 {

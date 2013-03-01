@@ -1,8 +1,8 @@
 #ifndef PANELAPPLICATION_H
 #define PANELAPPLICATION_H
 
-#include <QtGui/QApplication>
 #include <QtGui/QFont>
+#include <QtWidgets/QApplication>
 #include "panelwindow.h"
 
 class IconLoader;
@@ -20,8 +20,6 @@ public:
 	{
 		return m_instance;
 	}
-
-	bool x11EventFilter(XEvent* event);
 
 	void init();
 

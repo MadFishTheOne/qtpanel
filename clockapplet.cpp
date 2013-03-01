@@ -2,7 +2,7 @@
 
 #include <QtCore/QTimer>
 #include <QtCore/QDateTime>
-#include <QtGui/QGraphicsScene>
+#include <QtWidgets/QGraphicsScene>
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
 

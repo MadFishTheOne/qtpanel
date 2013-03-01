@@ -4,7 +4,7 @@
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtGui/QIcon>
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 #include "applet.h"
 
 class QGraphicsPixmapItem;
@@ -19,7 +19,6 @@ class Client;
 class DockItem: public QObject, public QGraphicsItem
 {
 	Q_OBJECT
-	Q_INTERFACES(QGraphicsItem)
 public:
 	DockItem(DockApplet* dockApplet);
 	~DockItem();

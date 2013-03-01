@@ -1,7 +1,7 @@
 #include "trayapplet.h"
 
 #include <QtGui/QPainter>
-#include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 #include "panelapplication.h"
 #include "panelwindow.h"
 #include "x11support.h"

@@ -1,9 +1,9 @@
 #include "applicationsmenuapplet.h"
 
-#include <QtGui/QMenu>
-#include <QtGui/QStyle>
 #include <QtGui/QPixmap>
-#include <QtGui/QGraphicsScene>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QStyle>
+#include <QtWidgets/QGraphicsScene>
 #include "textgraphicsitem.h"
 #include "panelwindow.h"
 #include "desktopapplications.h"
@@ -14,7 +14,7 @@ int ApplicationsMenuStyle::pixelMetric(PixelMetric metric, const QStyleOption* o
 	if(metric == QStyle::PM_SmallIconSize)
 		return adjustHardcodedPixelSize(32);
 	else
-		return QPlastiqueStyle::pixelMetric(metric, option, widget);
+		return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
 SubMenu::SubMenu(QMenu* parent, const QString& title, const QString& category, const QString& icon)

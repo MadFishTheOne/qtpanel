@@ -3,7 +3,7 @@
 
 #include <QtGui/QColor>
 #include <QtGui/QFont>
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 
 class TextGraphicsItem: public QGraphicsItem
 {

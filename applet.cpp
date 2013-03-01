@@ -2,8 +2,8 @@
 
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 #include "panelwindow.h"
 #include "animationutils.h"
 
@@ -43,12 +43,12 @@ void Applet::setInteractive(bool interactive)
 
 	if(m_interactive)
 	{
-		setAcceptsHoverEvents(true);
+		setAcceptHoverEvents(true);
 		setAcceptedMouseButtons(Qt::RightButton | Qt::LeftButton);
 	}
 	else
 	{
-		setAcceptsHoverEvents(false);
+		setAcceptHoverEvents(false);
 		setAcceptedMouseButtons(Qt::RightButton);
 	}
 }

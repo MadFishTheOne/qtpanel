@@ -10,7 +10,6 @@ class TrayApplet;
 class TrayItem: public QObject, public QGraphicsItem
 {
 	Q_OBJECT
-	Q_INTERFACES(QGraphicsItem)
 public:
 	TrayItem(TrayApplet* trayApplet, unsigned long window);
 	~TrayItem();

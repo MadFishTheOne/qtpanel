@@ -2,8 +2,8 @@
 #define PANELWINDOW_H
 
 #include <QtCore/QVector>
-#include <QtGui/QWidget>
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QGraphicsItem>
 
 class QFont;
 class QGraphicsScene;

@@ -4,14 +4,13 @@
 #include <QtCore/QObject>
 #include <QtCore/QPoint>
 #include <QtCore/QSize>
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 
 class PanelWindow;
 
 class Applet: public QObject, public QGraphicsItem
 {
 	Q_OBJECT
-	Q_INTERFACES(QGraphicsItem)
 public:
 	Applet(PanelWindow* panelWindow);
 	~Applet();

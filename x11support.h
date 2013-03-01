@@ -14,8 +14,6 @@ public:
 	X11Support();
 	~X11Support();
 
-	void onX11Event(XEvent* event);
-
 	static X11Support* instance()
 	{
 		return m_instance;
