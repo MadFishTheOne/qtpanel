@@ -50,8 +50,6 @@ public:
 	static void activateWindow(xcb_window_t window);
 	static void minimizeWindow(xcb_window_t window);
 	static void closeWindow(xcb_window_t window);
-	static void destroyWindow(xcb_window_t window);
-	static void killClient(xcb_window_t window);
 	static bool makeSystemTray(xcb_window_t window);
 	static void freeSystemTray();
 	static xcb_visualid_t getARGBVisualId();

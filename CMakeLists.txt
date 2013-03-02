@@ -47,7 +47,7 @@ qt5_wrap_ui(qtpanel_UI_HEADERS ${qtpanel_UIS})
 qt5_wrap_cpp(qtpanel_MOC_OUTPUT ${qtpanel_MOC_HEADERS})
 add_executable(qtpanel ${qtpanel_SOURCES} ${qtpanel_MOC_OUTPUT} ${qtpanel_HEADERS} ${qtpanel_UI_HEADERS})
 qt5_use_modules(qtpanel Widgets)
-target_link_libraries(qtpanel ${XCB_XCB_LIBRARIES})
+target_link_libraries(qtpanel ${XCB_XCB_LIBRARIES} ${XCB_ICCCM_LIBRARIES})
 
 # For <qpa/qplatformnativeinterface.h>.
 set_property(TARGET qtpanel APPEND PROPERTY INCLUDE_DIRECTORIES ${Qt5Gui_PRIVATE_INCLUDE_DIRS})

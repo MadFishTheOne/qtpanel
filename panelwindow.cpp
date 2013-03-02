@@ -35,8 +35,6 @@ QRectF PanelWindowGraphicsItem::boundingRect() const
 void PanelWindowGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 	painter->setPen(Qt::NoPen);
-	painter->setBrush(QColor(0, 0, 0, 128));
-	painter->drawRect(boundingRect());
 
 	static const int borderThickness = 3;
 	if(m_panelWindow->verticalAnchor() == PanelWindow::Min)
@@ -74,11 +72,8 @@ void PanelWindowGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 PanelWindow::PanelWindow()
 	: m_dockMode(false), m_screen(0), m_horizontalAnchor(Center), m_verticalAnchor(Min), m_orientation(Horizontal), m_layoutPolicy(Normal)
 {
-	setStyleSheet("background-color: transparent");
-	setAttribute(Qt::WA_TranslucentBackground);
-
 	m_scene = new QGraphicsScene();
-	m_scene->setBackgroundBrush(QBrush(Qt::NoBrush));
+	m_scene->setBackgroundBrush(Qt::black);
 
 	m_panelItem = new PanelWindowGraphicsItem(this);
 	m_scene->addItem(m_panelItem);
@@ -258,15 +253,6 @@ void PanelWindow::updatePosition()
 		values.resize(4);
 		X11Support::setWindowPropertyCardinalArray(winId(), "_NET_WM_STRUT", values);
 	}
-
-	// Update "blur behind" hint.
-	QVector<uint32_t> values;
-	values.resize(4);
-	values[0] = 0;
-	values[1] = 0;
-	values[2] = width();
-	values[3] = height();
-	X11Support::setWindowPropertyCardinalArray(winId(), "_KDE_NET_WM_BLUR_BEHIND_REGION", values);
 }
 
 const QFont& PanelWindow::font() const

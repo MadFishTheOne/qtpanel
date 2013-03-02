@@ -9,6 +9,7 @@
 #include <qpa/qplatformnativeinterface.h>
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_icccm.h>
 
 X11Support* X11Support::m_instance = NULL;
 
@@ -34,6 +35,12 @@ X11Support::~X11Support()
 bool X11Support::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
 {
 	xcb_generic_event_t* event = reinterpret_cast<xcb_generic_event_t*>(message);
+
+	if(event->response_type == XCB_PROPERTY_NOTIFY)
+	{
+		xcb_property_notify_event_t* t = reinterpret_cast<xcb_property_notify_event_t*>(event);
+		emit windowPropertyChanged(t->window, t->atom);
+	}
 
 /*	if(event->type == m_damageEventBase + XDamageNotify)
 	{
@@ -99,122 +106,104 @@ void X11Support::setWindowPropertyVisualId(xcb_window_t window, const QString& n
 }
 
 template<class T>
-static bool getWindowPropertyHelper(xcb_window_t window, xcb_atom_t atom, xcb_atom_t type, int& numItems, T*& data)
+static T getWindowPropertyScalar(xcb_window_t window, xcb_atom_t atom, xcb_atom_t type)
 {
-/*	Atom retType;
-	int retFormat;
-	unsigned long numItemsTemp;
-	unsigned long bytesLeft;
-	if(XGetWindowProperty(QX11Info::display(), window, atom, 0, 0x7FFFFFFF, False, type, &retType, &retFormat, &numItemsTemp, &bytesLeft, reinterpret_cast<unsigned char**>(&data)) != Success)
-		return false;
-	numItems = numItemsTemp;
-	if(numItems == 0)
-		return false;
-	return true;*/
-	return false;
+	T result = 0;
+	xcb_get_property_cookie_t cookie = xcb_get_property(X11Support::connection(), 0, window, atom, type, 0, 1);
+	xcb_get_property_reply_t* reply = xcb_get_property_reply(X11Support::connection(), cookie, NULL);
+	if(reply != NULL)
+	{
+		if(reply->length > 0)
+			result = *reinterpret_cast<const T*>(xcb_get_property_value(reply));
+		free(reply);
+	}
+	return result;
+}
+
+template<class T>
+static QVector<T> getWindowPropertyArray(xcb_window_t window, xcb_atom_t atom, xcb_atom_t type)
+{
+	QVector<T> result;
+	xcb_get_property_cookie_t cookie = xcb_get_property(X11Support::connection(), 0, window, atom, type, 0, 0xFFFFFFFF);
+	xcb_get_property_reply_t* reply = xcb_get_property_reply(X11Support::connection(), cookie, NULL);
+	if(reply != NULL)
+	{
+		const T* values = reinterpret_cast<const T*>(xcb_get_property_value(reply));
+		result.resize(reply->length);
+		for(int i = 0; i < reply->length; i++)
+			result[i] = values[i];
+		free(reply);
+	}
+	return result;
 }
 
 uint32_t X11Support::getWindowPropertyCardinal(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	unsigned long* data;
-	unsigned long value = 0;
-	if(!getWindowPropertyHelper(window, atom(name), XA_CARDINAL, numItems, data))
-		return value;
-	value = data[0];
-	XFree(data);
-	return value;*/
-	return 0;
+	return getWindowPropertyScalar<uint32_t>(window, atom(name), XCB_ATOM_CARDINAL);
 }
 
 xcb_window_t X11Support::getWindowPropertyWindow(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	unsigned long* data;
-	unsigned long value = 0;
-	if(!getWindowPropertyHelper(window, atom(name), XA_WINDOW, numItems, data))
-		return value;
-	value = data[0];
-	XFree(data);
-	return value;*/
-	return 0;
+	return getWindowPropertyScalar<xcb_window_t>(window, atom(name), XCB_ATOM_WINDOW);
 }
 
 QVector<xcb_window_t> X11Support::getWindowPropertyWindowsArray(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	unsigned long* data;
-	QVector<unsigned long> values;
-	if(!getWindowPropertyHelper(window, atom(name), XA_WINDOW, numItems, data))
-		return values;
-	for(int i = 0; i < numItems; i++)
-		values.append(data[i]);
-	XFree(data);
-	return values;*/
-	return QVector<xcb_window_t>();
+	return getWindowPropertyArray<xcb_window_t>(window, atom(name), XCB_ATOM_WINDOW);
 }
 
 QVector<xcb_atom_t> X11Support::getWindowPropertyAtomsArray(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	unsigned long* data;
-	QVector<unsigned long> values;
-	if(!getWindowPropertyHelper(window, atom(name), XA_ATOM, numItems, data))
-		return values;
-	for(int i = 0; i < numItems; i++)
-		values.append(data[i]);
-	XFree(data);
-	return values;*/
-	return QVector<xcb_atom_t>();
+	return getWindowPropertyArray<xcb_atom_t>(window, atom(name), XCB_ATOM_ATOM);
 }
 
 QString X11Support::getWindowPropertyUTF8String(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	char* data;
-	QString value;
-	if(!getWindowPropertyHelper(window, atom(name), atom("UTF8_STRING"), numItems, data))
-		return value;
-	value = QString::fromUtf8(data);
-	XFree(data);
-	return value;*/
-	return "";
+	QString result;
+	xcb_get_property_cookie_t cookie = xcb_get_property(connection(), 0, window, atom(name), atom("UTF8_STRING"), 0, 0xFFFFFFFF);
+	xcb_get_property_reply_t* reply = xcb_get_property_reply(connection(), cookie, NULL);
+	if(reply != NULL)
+	{
+		result = QString::fromUtf8(reinterpret_cast<const char*>(xcb_get_property_value(reply)));
+		free(reply);
+	}
+	return result;
 }
 
 QString X11Support::getWindowPropertyLatin1String(xcb_window_t window, const QString& name)
 {
-/*	int numItems;
-	char* data;
-	QString value;
-	if(!getWindowPropertyHelper(window, atom(name), XA_STRING, numItems, data))
-		return value;
-	value = QString::fromLatin1(data);
-	XFree(data);
-	return value;*/
-	return "";
+	QString result;
+	xcb_get_property_cookie_t cookie = xcb_get_property(connection(), 0, window, atom(name), XCB_ATOM_STRING, 0, 0xFFFFFFFF);
+	xcb_get_property_reply_t* reply = xcb_get_property_reply(connection(), cookie, NULL);
+	if(reply != NULL)
+	{
+		result = QString::fromUtf8(reinterpret_cast<const char*>(xcb_get_property_value(reply)));
+		free(reply);
+	}
+	return result;
 }
 
 QString X11Support::getWindowName(xcb_window_t window)
 {
-/*	QString result = getWindowPropertyUTF8String(window, "_NET_WM_VISIBLE_NAME");
+	QString result = getWindowPropertyUTF8String(window, "_NET_WM_VISIBLE_NAME");
 	if(result.isEmpty())
 		result = getWindowPropertyUTF8String(window, "_NET_WM_NAME");
 	if(result.isEmpty())
 		result = getWindowPropertyLatin1String(window, "WM_NAME");
 	if(result.isEmpty())
 		result = "<Unknown>";
-	return result;*/
-	return "";
+	return result;
 }
 
 QIcon X11Support::getWindowIcon(xcb_window_t window)
 {
-/*	int numItems;
-	unsigned long* rawData;
 	QIcon icon;
-	if(!getWindowPropertyHelper(window, atom("_NET_WM_ICON"), XA_CARDINAL, numItems, rawData))
-		return icon;
-	unsigned long* data = rawData;
+
+	QVector<uint32_t> array = getWindowPropertyArray<uint32_t>(window, atom("_NET_WM_ICON"), XCB_ATOM_CARDINAL);
+
+	const uint32_t* data = array.data();
+	int numItems = array.size();
+
 	while(numItems > 0)
 	{
 		int width = static_cast<int>(data[0]);
@@ -233,25 +222,22 @@ QIcon X11Support::getWindowIcon(xcb_window_t window)
 		numItems -= width*height;
 		icon.addPixmap(QPixmap::fromImage(image));
 	}
-	XFree(rawData);
-	return icon;*/
-	return QIcon();
+
+	return icon;
 }
 
 bool X11Support::getWindowUrgency(xcb_window_t window)
 {
-/*	XWMHints* hints = XGetWMHints(QX11Info::display(), window);
-	if(hints == NULL)
-		return false;
-	bool isUrgent = (hints->flags & 256) != 0; // UrgencyHint
-	XFree(hints);
-	return isUrgent;*/
-	return false;
+	xcb_get_property_cookie_t cookie = xcb_icccm_get_wm_hints(connection(), window);
+	xcb_icccm_wm_hints_t hints;
+	xcb_icccm_get_wm_hints_reply(connection(), cookie, &hints, NULL);
+	return xcb_icccm_wm_hints_get_urgency(&hints) != 0;
 }
 
 void X11Support::registerForWindowPropertyChanges(xcb_window_t window)
 {
-//	XSelectInput(QX11Info::display(), window, PropertyChangeMask);
+	uint32_t t = XCB_EVENT_MASK_PROPERTY_CHANGE;
+	xcb_change_window_attributes(connection(), window, XCB_CW_EVENT_MASK, &t);
 }
 
 void X11Support::registerForTrayIconUpdates(xcb_window_t window)
@@ -264,48 +250,39 @@ void X11Support::registerForTrayIconUpdates(xcb_window_t window)
 
 static void sendNETWMMessage(xcb_window_t window, const QString& atomName, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
 {
-/*	XClientMessageEvent event;
-	event.type = ClientMessage;
-	event.window = window;
-	event.message_type = X11Support::atom(atomName);
-	event.format = 32;
-	event.data.l[0] = l0;
-	event.data.l[1] = l1;
-	event.data.l[2] = l2;
-	event.data.l[3] = l3;
-	event.data.l[4] = l4;
-	XSendEvent(QX11Info::display(), X11Support::rootWindow(), False, SubstructureNotifyMask | SubstructureRedirectMask, reinterpret_cast<XEvent*>(&event));*/
+	char buf[32];
+	memset(buf, 0, sizeof(buf));
+	xcb_client_message_event_t* event = reinterpret_cast<xcb_client_message_event_t*>(buf);
+	event->response_type = XCB_CLIENT_MESSAGE;
+	event->window = window;
+	event->type = X11Support::atom(atomName);
+	event->format = 32;
+	event->data.data32[0] = l0;
+	event->data.data32[1] = l1;
+	event->data.data32[2] = l2;
+	event->data.data32[3] = l3;
+	event->data.data32[4] = l4;
+	xcb_send_event(X11Support::connection(), 0, X11Support::rootWindow(), XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, buf);
 }
 
 void X11Support::activateWindow(xcb_window_t window)
 {
-/*	XWindowChanges wc;
-	wc.stack_mode = Above;
-	XConfigureWindow(QX11Info::display(), window, CWStackMode, &wc);
+	uint32_t t = XCB_STACK_MODE_ABOVE;
+	xcb_configure_window(connection(), window, XCB_CONFIG_WINDOW_STACK_MODE, &t);
 
 	// Apparently, KWin won't bring window to top with configure request,
 	// so we also need to ask it politely by sending a message.
-	sendNETWMMessage(window, "_NET_ACTIVE_WINDOW", 2, CurrentTime);*/
+	sendNETWMMessage(window, "_NET_ACTIVE_WINDOW", 2, 0);
 }
 
 void X11Support::minimizeWindow(xcb_window_t window)
 {
-//	XIconifyWindow(QX11Info::display(), window, QX11Info::appScreen());
+	sendNETWMMessage(window, "WM_CHANGE_STATE", 3);
 }
 
 void X11Support::closeWindow(xcb_window_t window)
 {
-//	sendNETWMMessage(window, "_NET_CLOSE_WINDOW", CurrentTime, 2);
-}
-
-void X11Support::destroyWindow(xcb_window_t window)
-{
-//	XDestroyWindow(QX11Info::display(), window);
-}
-
-void X11Support::killClient(xcb_window_t window)
-{
-//	XKillClient(QX11Info::display(), window);
+	sendNETWMMessage(window, "_NET_CLOSE_WINDOW", 0, 2);
 }
 
 xcb_atom_t X11Support::systemTrayAtom()
