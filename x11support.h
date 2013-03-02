@@ -4,10 +4,13 @@
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtCore/QObject>
+#include <QtCore/QAbstractNativeEventFilter>
 #include <QtGui/QIcon>
 #include <QtGui/QPixmap>
 
-class X11Support: public QObject
+struct xcb_connection_t;
+
+class X11Support: public QObject, public QAbstractNativeEventFilter
 {
 	Q_OBJECT
 public:
@@ -64,7 +67,11 @@ signals:
 private:
 	static unsigned long systemTrayAtom();
 
+	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
+
 	static X11Support* m_instance;
+	xcb_connection_t* m_connection;
+	unsigned long m_rootWindow;
 	int m_damageEventBase;
 	QMap<QString, unsigned long> m_cachedAtoms;
 };

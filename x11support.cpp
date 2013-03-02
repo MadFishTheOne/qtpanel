@@ -1,6 +1,14 @@
 #include "x11support.h"
 
+#include <QtCore/QAbstractEventDispatcher>
 #include <QtGui/QImage>
+#include <QtGui/QWindow>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDesktopWidget>
+
+#include <qpa/qplatformnativeinterface.h>
+
+#include <xcb/xcb.h>
 
 /*static XErrorHandler oldX11ErrorHandler = NULL;
 
@@ -17,6 +25,12 @@ X11Support* X11Support::m_instance = NULL;
 X11Support::X11Support()
 {
 	m_instance = this;
+
+	m_connection = reinterpret_cast<xcb_connection_t*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("connection", NULL));
+	m_rootWindow = static_cast<unsigned long>(QApplication::desktop()->windowHandle()->winId());
+
+	QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
+
 /*	oldX11ErrorHandler = XSetErrorHandler(x11errorHandler);
 	int damageErrorBase;
 	XDamageQueryExtension(QX11Info::display(), &m_damageEventBase, &damageErrorBase);*/
@@ -24,12 +38,15 @@ X11Support::X11Support()
 
 X11Support::~X11Support()
 {
+	QAbstractEventDispatcher::instance()->removeNativeEventFilter(this);
 	m_instance = NULL;
 }
 
-/*void X11Support::onX11Event(XEvent* event)
+bool X11Support::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
 {
-	if(event->type == m_damageEventBase + XDamageNotify)
+	xcb_generic_event_t* event = reinterpret_cast<xcb_generic_event_t*>(message);
+
+/*	if(event->type == m_damageEventBase + XDamageNotify)
 	{
 		// Repair damaged area.
 		XDamageNotifyEvent* damageEvent = reinterpret_cast<XDamageNotifyEvent*>(event);
@@ -44,8 +61,10 @@ X11Support::~X11Support()
 	if(event->type == PropertyNotify)
 		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
 	if(event->type == ClientMessage)
-		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);
-}*/
+		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);*/
+
+	return false;
+}
 
 unsigned long X11Support::rootWindow()
 {
