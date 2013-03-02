@@ -288,7 +288,7 @@ static void sendClientMessage(xcb_window_t window, xcb_atom_t type, uint32_t eve
 	xcb_send_event(X11Support::connection(), 0, X11Support::rootWindow(), eventMask, buf);
 }
 
-static void sendNETWMMessage(xcb_window_t window, xcb_atom_t type, uint32_t eventMask, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
+static void sendNETWMMessage(xcb_window_t window, xcb_atom_t type, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
 {
 	sendClientMessage(window, type, XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, l0, l1, l2, l3, l4);
 }
