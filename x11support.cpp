@@ -18,12 +18,26 @@ X11Support::X11Support()
 	m_instance = this;
 
 	m_connection = reinterpret_cast<xcb_connection_t*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("connection", NULL));
+
 	m_rootWindow = static_cast<xcb_window_t>(QApplication::desktop()->windowHandle()->winId());
+	const xcb_setup_t* setup = xcb_get_setup(m_connection);
+	xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
+	m_screenNumber = 0;
+
+	for(;;)
+	{
+		if(iter.data->root == m_rootWindow)
+		{
+			m_screen = iter.data;
+			break;
+		}
+		m_screenNumber++;
+		xcb_screen_next(&iter);
+	}
+
+	m_systemTrayAtom = atom(QString("_NET_SYSTEM_TRAY_S") + QString::number(m_screenNumber));
 
 	QAbstractEventDispatcher::instance()->installNativeEventFilter(this);
-
-/*	int damageErrorBase;
-	XDamageQueryExtension(QX11Info::display(), &m_damageEventBase, &damageErrorBase);*/
 }
 
 X11Support::~X11Support()
@@ -36,28 +50,36 @@ bool X11Support::nativeEventFilter(const QByteArray& eventType, void* message, l
 {
 	xcb_generic_event_t* event = reinterpret_cast<xcb_generic_event_t*>(message);
 
-	if(event->response_type == XCB_PROPERTY_NOTIFY)
+	switch(event->response_type & ~0x80)
 	{
-		xcb_property_notify_event_t* t = reinterpret_cast<xcb_property_notify_event_t*>(event);
-		emit windowPropertyChanged(t->window, t->atom);
+		case XCB_PROPERTY_NOTIFY:
+		{
+			xcb_property_notify_event_t* t = reinterpret_cast<xcb_property_notify_event_t*>(event);
+			emit windowPropertyChanged(t->window, t->atom);
+			break;
+		}
+		case XCB_DESTROY_NOTIFY:
+		{
+			xcb_destroy_notify_event_t* t = reinterpret_cast<xcb_destroy_notify_event_t*>(event);
+			emit windowClosed(t->window);
+			break;
+		}
+		case XCB_CONFIGURE_NOTIFY:
+		{
+			xcb_configure_notify_event_t* t = reinterpret_cast<xcb_configure_notify_event_t*>(event);
+			emit windowReconfigured(t->window, t->x, t->y, t->width, t->height);
+			break;
+		}
+		case XCB_CLIENT_MESSAGE:
+		{
+			xcb_client_message_event_t* t = reinterpret_cast<xcb_client_message_event_t*>(event);
+			emit clientMessageReceived(t->window, t->type, t->data.data32);
+		}
+		default:
+		{
+			break;
+		}
 	}
-
-/*	if(event->type == m_damageEventBase + XDamageNotify)
-	{
-		// Repair damaged area.
-		XDamageNotifyEvent* damageEvent = reinterpret_cast<XDamageNotifyEvent*>(event);
-		XDamageSubtract(QX11Info::display(), damageEvent->damage, None, None);
-
-		emit windowDamaged(event->xany.window);
-	}
-	if(event->type == DestroyNotify)
-		emit windowClosed(event->xdestroywindow.window);
-	if(event->type == ConfigureNotify)
-		emit windowReconfigured(event->xconfigure.window, event->xconfigure.x, event->xconfigure.y, event->xconfigure.width, event->xconfigure.height);
-	if(event->type == PropertyNotify)
-		emit windowPropertyChanged(event->xproperty.window, event->xproperty.atom);
-	if(event->type == ClientMessage)
-		emit clientMessageReceived(event->xclient.window, event->xclient.message_type, event->xclient.data.b);*/
 
 	return false;
 }
@@ -98,11 +120,6 @@ void X11Support::setWindowPropertyAtom(xcb_window_t window, const QString& name,
 {
 	xcb_atom_t t = atom(value);
 	xcb_change_property(connection(), XCB_PROP_MODE_REPLACE, window, atom(name), XCB_ATOM_ATOM, 32, 1, &t);
-}
-
-void X11Support::setWindowPropertyVisualId(xcb_window_t window, const QString& name, xcb_visualid_t value)
-{
-	xcb_change_property(connection(), XCB_PROP_MODE_REPLACE, window, atom(name), XCB_ATOM_VISUALID, 32, 1, &value);
 }
 
 template<class T>
@@ -240,29 +257,40 @@ void X11Support::registerForWindowPropertyChanges(xcb_window_t window)
 	xcb_change_window_attributes(connection(), window, XCB_CW_EVENT_MASK, &t);
 }
 
-void X11Support::registerForTrayIconUpdates(xcb_window_t window)
+bool X11Support::registerForTrayIconUpdates(xcb_window_t window)
 {
-/*	XSelectInput(QX11Info::display(), window, StructureNotifyMask);
+	uint32_t t = XCB_EVENT_MASK_STRUCTURE_NOTIFY;
+	xcb_void_cookie_t cookie = xcb_change_window_attributes(connection(), window, XCB_CW_EVENT_MASK, &t);
+	xcb_generic_error_t* error = xcb_request_check(connection(), cookie);
+	if(error != NULL)
+	{
+		free(error);
+		return false;
+	}
 
-	// Apparently, there is no need to destroy damage object, as it's gone automatically when window is destroyed.
-	XDamageCreate(QX11Info::display(), window, XDamageReportNonEmpty);*/
+	return true;
 }
 
-static void sendNETWMMessage(xcb_window_t window, const QString& atomName, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
+static void sendClientMessage(xcb_window_t window, xcb_atom_t type, uint32_t eventMask, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
 {
 	char buf[32];
 	memset(buf, 0, sizeof(buf));
 	xcb_client_message_event_t* event = reinterpret_cast<xcb_client_message_event_t*>(buf);
 	event->response_type = XCB_CLIENT_MESSAGE;
 	event->window = window;
-	event->type = X11Support::atom(atomName);
+	event->type = type;
 	event->format = 32;
 	event->data.data32[0] = l0;
 	event->data.data32[1] = l1;
 	event->data.data32[2] = l2;
 	event->data.data32[3] = l3;
 	event->data.data32[4] = l4;
-	xcb_send_event(X11Support::connection(), 0, X11Support::rootWindow(), XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, buf);
+	xcb_send_event(X11Support::connection(), 0, X11Support::rootWindow(), eventMask, buf);
+}
+
+static void sendNETWMMessage(xcb_window_t window, xcb_atom_t type, uint32_t eventMask, uint32_t l0 = 0, uint32_t l1 = 0, uint32_t l2 = 0, uint32_t l3 = 0, uint32_t l4 = 0)
+{
+	sendClientMessage(window, type, XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY | XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT, l0, l1, l2, l3, l4);
 }
 
 void X11Support::activateWindow(xcb_window_t window)
@@ -272,110 +300,71 @@ void X11Support::activateWindow(xcb_window_t window)
 
 	// Apparently, KWin won't bring window to top with configure request,
 	// so we also need to ask it politely by sending a message.
-	sendNETWMMessage(window, "_NET_ACTIVE_WINDOW", 2, 0);
+	sendNETWMMessage(window, atom("_NET_ACTIVE_WINDOW"), 2, 0);
 }
 
 void X11Support::minimizeWindow(xcb_window_t window)
 {
-	sendNETWMMessage(window, "WM_CHANGE_STATE", 3);
+	sendNETWMMessage(window, atom("WM_CHANGE_STATE"), 3);
 }
 
 void X11Support::closeWindow(xcb_window_t window)
 {
-	sendNETWMMessage(window, "_NET_CLOSE_WINDOW", 0, 2);
-}
-
-xcb_atom_t X11Support::systemTrayAtom()
-{
-//	return atom(QString("_NET_SYSTEM_TRAY_S") + QString::number(QX11Info::appScreen()));
-	return 0;
+	sendNETWMMessage(window, atom("_NET_CLOSE_WINDOW"), 0, 2);
 }
 
 bool X11Support::makeSystemTray(xcb_window_t window)
 {
-/*	if(XGetSelectionOwner(QX11Info::display(), systemTrayAtom()) != 0)
+	bool alreadyOwned = false;
+
+	xcb_get_selection_owner_cookie_t cookie = xcb_get_selection_owner(connection(), systemTrayAtom());
+	xcb_get_selection_owner_reply_t* reply = xcb_get_selection_owner_reply(connection(), cookie, NULL);
+	if(reply != NULL)
+	{
+		alreadyOwned = reply->owner != 0;
+		free(reply);
+	}
+
+	if(alreadyOwned)
 		return false;
 
-	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), window, CurrentTime);
-	setWindowPropertyVisualId(window, "_NET_SYSTEM_TRAY_VISUAL", getARGBVisualId());
-	XSync(QX11Info::display(), False);
+	xcb_set_selection_owner(connection(), window, systemTrayAtom(), 0);
 
 	// Inform other clients.
-	XClientMessageEvent event;
-	event.type = ClientMessage;
-	event.window = rootWindow();
-	event.message_type = atom("MANAGER");
-	event.format = 32;
-	event.data.l[0] = CurrentTime;
-	event.data.l[1] = systemTrayAtom();
-	event.data.l[2] = window;
-	event.data.l[3] = 0;
-	event.data.l[4] = 0;
-	XSendEvent(QX11Info::display(), X11Support::rootWindow(), False, StructureNotifyMask, reinterpret_cast<XEvent*>(&event));*/
+	sendClientMessage(rootWindow(), atom("MANAGER"), XCB_EVENT_MASK_STRUCTURE_NOTIFY, 0, systemTrayAtom(), window);
 
 	return true;
 }
 
 void X11Support::freeSystemTray()
 {
-//	XSetSelectionOwner(QX11Info::display(), systemTrayAtom(), None, CurrentTime);
-}
-
-xcb_visualid_t X11Support::getARGBVisualId()
-{
-/*	XVisualInfo visualInfoTemplate;
-	visualInfoTemplate.screen = QX11Info::appScreen();
-	visualInfoTemplate.depth = 32;
-	visualInfoTemplate.red_mask = 0x00FF0000;
-	visualInfoTemplate.green_mask = 0x0000FF00;
-	visualInfoTemplate.blue_mask = 0x000000FF;
-
-	int numVisuals;
-	XVisualInfo* visualInfoList = XGetVisualInfo(QX11Info::display(), VisualScreenMask | VisualDepthMask | VisualRedMaskMask | VisualGreenMaskMask | VisualBlueMaskMask, &visualInfoTemplate, &numVisuals);
-	unsigned long id = visualInfoList[0].visualid;
-	XFree(visualInfoList);
-
-	return id;*/
-	return 0;
-}
-
-void X11Support::redirectWindow(xcb_window_t window)
-{
-//	XCompositeRedirectWindow(QX11Info::display(), window, CompositeRedirectManual);
-}
-
-void X11Support::unredirectWindow(xcb_window_t window)
-{
-//	XCompositeUnredirectWindow(QX11Info::display(), window, CompositeRedirectManual);
-}
-
-QPixmap X11Support::getWindowPixmap(xcb_window_t window)
-{
-//	return QPixmap::fromX11Pixmap(XCompositeNameWindowPixmap(QX11Info::display(), window));
+	xcb_set_selection_owner(connection(), 0, systemTrayAtom(), 0);
 }
 
 void X11Support::resizeWindow(xcb_window_t window, int width, int height)
 {
-//	XResizeWindow(QX11Info::display(), window, width, height);
+	uint32_t values[2] = { width, height };
+	xcb_configure_window(connection(), window, XCB_CONFIG_WINDOW_WIDTH | XCB_CONFIG_WINDOW_HEIGHT, values);
 }
 
 void X11Support::moveWindow(xcb_window_t window, int x, int y)
 {
-//	XMoveWindow(QX11Info::display(), window, x, y);
+	uint32_t values[2] = { x, y };
+	xcb_configure_window(connection(), window, XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y, values);
 }
 
 void X11Support::mapWindow(xcb_window_t window)
 {
-//	XMapWindow(QX11Info::display(), window);
+	xcb_map_window(connection(), window);
 }
 
 void X11Support::reparentWindow(xcb_window_t window, xcb_window_t parent)
 {
-/*	XReparentWindow(QX11Info::display(), window, parent, 0, 0);
-	XSync(QX11Info::display(), False);*/
+	xcb_reparent_window(connection(), window, parent, 0, 0);
 }
 
 void X11Support::setWindowBackgroundBlack(xcb_window_t window)
 {
-//	XSetWindowBackground(QX11Info::display(), window, BlackPixel(QX11Info::display(), QX11Info::appScreen()));
+	uint32_t t = m_instance->m_screen->black_pixel;
+	xcb_change_window_attributes(connection(), window, XCB_CW_BACK_PIXEL, &t);
 }
