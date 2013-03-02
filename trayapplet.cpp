@@ -7,7 +7,7 @@
 #include "x11support.h"
 #include "dpisupport.h"
 
-TrayItem::TrayItem(TrayApplet* trayApplet, unsigned long window)
+TrayItem::TrayItem(TrayApplet* trayApplet, xcb_window_t window)
 	: m_trayApplet(trayApplet), m_window(window)
 {
 	setParentItem(m_trayApplet);
@@ -93,10 +93,10 @@ bool TrayApplet::init()
 		return false;
 	}
 
-	connect(X11Support::instance(), SIGNAL(windowClosed(ulong)), this, SLOT(windowClosed(ulong)));
-	connect(X11Support::instance(), SIGNAL(windowReconfigured(ulong,int,int,int,int)), this, SLOT(windowReconfigured(ulong,int,int,int,int)));
-	connect(X11Support::instance(), SIGNAL(windowDamaged(ulong)), this, SLOT(windowDamaged(ulong)));
-	connect(X11Support::instance(), SIGNAL(clientMessageReceived(ulong,ulong,void*)), this, SLOT(clientMessageReceived(ulong,ulong,void*)));
+	connect(X11Support::instance(), SIGNAL(windowClosed(xcb_window_t)), this, SLOT(windowClosed(xcb_window_t)));
+	connect(X11Support::instance(), SIGNAL(windowReconfigured(xcb_window_t,int,int,int,int)), this, SLOT(windowReconfigured(xcb_window_t,int,int,int,int)));
+	connect(X11Support::instance(), SIGNAL(windowDamaged(xcb_window_t)), this, SLOT(windowDamaged(xcb_window_t)));
+	connect(X11Support::instance(), SIGNAL(clientMessageReceived(xcb_window_t,xcb_atom_t,void*)), this, SLOT(clientMessageReceived(xcb_window_t,xcb_atom_t,void*)));
 
 	return true;
 }
@@ -126,11 +126,11 @@ void TrayApplet::layoutChanged()
 	updateLayout();
 }
 
-void TrayApplet::clientMessageReceived(unsigned long window, unsigned long atom, void* data)
+void TrayApplet::clientMessageReceived(xcb_window_t window, xcb_atom_t atom, void* data)
 {
 	if(atom == X11Support::atom("_NET_SYSTEM_TRAY_OPCODE"))
 	{
-		unsigned long* l = reinterpret_cast<unsigned long*>(data);
+		uint32_t* l = reinterpret_cast<uint32_t*>(data);
 		if(l[1] == 0) // TRAY_REQUEST_DOCK
 		{
 			for(int i = 0; i < m_trayItems.size(); i++)
@@ -143,7 +143,7 @@ void TrayApplet::clientMessageReceived(unsigned long window, unsigned long atom,
 	}
 }
 
-void TrayApplet::windowClosed(unsigned long window)
+void TrayApplet::windowClosed(xcb_window_t window)
 {
 	for(int i = 0; i < m_trayItems.size(); i++)
 	{
@@ -155,7 +155,7 @@ void TrayApplet::windowClosed(unsigned long window)
 	}
 }
 
-void TrayApplet::windowReconfigured(unsigned long window, int x, int y, int width, int height)
+void TrayApplet::windowReconfigured(xcb_window_t window, int x, int y, int width, int height)
 {
 	for(int i = 0; i < m_trayItems.size(); i++)
 	{
@@ -167,7 +167,7 @@ void TrayApplet::windowReconfigured(unsigned long window, int x, int y, int widt
 	}
 }
 
-void TrayApplet::windowDamaged(unsigned long window)
+void TrayApplet::windowDamaged(xcb_window_t window)
 {
 	for(int i = 0; i < m_trayItems.size(); i++)
 	{

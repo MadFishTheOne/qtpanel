@@ -1,9 +1,13 @@
 #ifndef TRAYAPPLET_H
 #define TRAYAPPLET_H
 
+#include <stdint.h>
 #include <QtCore/QVector>
 #include <QtCore/QSize>
 #include "applet.h"
+
+typedef uint32_t xcb_window_t;
+typedef uint32_t xcb_atom_t;
 
 class TrayApplet;
 
@@ -11,7 +15,7 @@ class TrayItem: public QObject, public QGraphicsItem
 {
 	Q_OBJECT
 public:
-	TrayItem(TrayApplet* trayApplet, unsigned long window);
+	TrayItem(TrayApplet* trayApplet, xcb_window_t window);
 	~TrayItem();
 
 	void setPosition(const QPoint& position);
@@ -20,7 +24,7 @@ public:
 	QRectF boundingRect() const;
 	void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-	unsigned long window() const
+	xcb_window_t window() const
 	{
 		return m_window;
 	}
@@ -28,7 +32,7 @@ public:
 private:
 	QSize m_size;
 	TrayApplet* m_trayApplet;
-	unsigned long m_window;
+	xcb_window_t m_window;
 };
 
 class TrayApplet: public Applet
@@ -51,10 +55,10 @@ protected:
 	void layoutChanged();
 
 private slots:
-	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
-	void windowClosed(unsigned long window);
-	void windowReconfigured(unsigned long window, int x, int y, int width, int height);
-	void windowDamaged(unsigned long window);
+	void clientMessageReceived(xcb_window_t window, xcb_atom_t atom, void* data);
+	void windowClosed(xcb_window_t window);
+	void windowReconfigured(xcb_window_t window, int x, int y, int width, int height);
+	void windowDamaged(xcb_window_t window);
 
 private:
 	void updateLayout();

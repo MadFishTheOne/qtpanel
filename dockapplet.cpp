@@ -277,10 +277,10 @@ void DockItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void DockItem::updateClientsIconGeometry()
 {
 	QPointF topLeft = m_dockApplet->mapToScene(m_targetPosition);
-	QVector<unsigned long> values;
+	QVector<uint32_t> values;
 	values.resize(4);
-	values[0] = static_cast<unsigned long>(topLeft.x()) + m_dockApplet->panelWindow()->pos().x();
-	values[1] = static_cast<unsigned long>(topLeft.y()) + m_dockApplet->panelWindow()->pos().y();
+	values[0] = static_cast<uint32_t>(topLeft.x()) + m_dockApplet->panelWindow()->pos().x();
+	values[1] = static_cast<uint32_t>(topLeft.y()) + m_dockApplet->panelWindow()->pos().y();
 	values[2] = m_targetSize.width();
 	values[3] = m_targetSize.height();
 	for(int i = 0; i < m_clients.size(); i++)
@@ -299,7 +299,7 @@ bool DockItem::isUrgent()
 	return false;
 }
 
-Client::Client(DockApplet* dockApplet, unsigned long handle)
+Client::Client(DockApplet* dockApplet, xcb_window_t handle)
 	: m_dockItem(NULL)
 {
 	m_dockApplet = dockApplet;
@@ -321,7 +321,7 @@ Client::~Client()
 	}
 }
 
-void Client::windowPropertyChanged(unsigned long atom)
+void Client::windowPropertyChanged(xcb_atom_t atom)
 {
 	if(atom == X11Support::atom("_NET_WM_WINDOW_TYPE") || atom == X11Support::atom("_NET_WM_STATE"))
 	{
@@ -346,8 +346,8 @@ void Client::windowPropertyChanged(unsigned long atom)
 
 void Client::updateVisibility()
 {
-	QVector<unsigned long> windowTypes = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
-	QVector<unsigned long> windowStates = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
+	QVector<xcb_atom_t> windowTypes = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_WINDOW_TYPE");
+	QVector<xcb_atom_t> windowStates = X11Support::getWindowPropertyAtomsArray(m_handle, "_NET_WM_STATE");
 
 	// Show only regular windows in dock.
 	// When no window type is set, assume it's normal window.
@@ -394,14 +394,14 @@ DockApplet::DockApplet(PanelWindow* panelWindow)
 	: Applet(panelWindow), m_dragging(false)
 {
 	// Register for notifications about window property changes.
-	connect(X11Support::instance(), SIGNAL(windowPropertyChanged(ulong,ulong)), this, SLOT(windowPropertyChanged(ulong,ulong)));
+	connect(X11Support::instance(), SIGNAL(windowPropertyChanged(xcb_window_t,xcb_atom_t)), this, SLOT(windowPropertyChanged(xcb_window_t,xcb_atom_t)));
 }
 
 DockApplet::~DockApplet()
 {
 	while(!m_clients.isEmpty())
 	{
-		unsigned long key = m_clients.begin().key();
+		xcb_window_t key = m_clients.begin().key();
 		delete m_clients.begin().value();
 		m_clients.remove(key);
 	}
@@ -514,7 +514,7 @@ void DockApplet::updateClientList()
 	if(m_dragging)
 		return; // Don't want new dock items to appear (or old to be removed) while rearranging them with drag and drop.
 
-	QVector<unsigned long> windows = X11Support::getWindowPropertyWindowsArray(X11Support::rootWindow(), "_NET_CLIENT_LIST");
+	QVector<xcb_window_t> windows = X11Support::getWindowPropertyWindowsArray(X11Support::rootWindow(), "_NET_CLIENT_LIST");
 
 	// Handle new clients.
 	for(int i = 0; i < windows.size(); i++)
@@ -554,7 +554,7 @@ void DockApplet::updateActiveWindow()
 	m_activeWindow = X11Support::getWindowPropertyWindow(X11Support::rootWindow(), "_NET_ACTIVE_WINDOW");
 }
 
-void DockApplet::windowPropertyChanged(unsigned long window, unsigned long atom)
+void DockApplet::windowPropertyChanged(xcb_window_t window, xcb_atom_t atom)
 {
 	if(window == X11Support::rootWindow())
 	{

@@ -125,7 +125,9 @@ void PanelWindow::setDockMode(bool dockMode)
 {
 	m_dockMode = dockMode;
 
-	setAttribute(Qt::WA_X11NetWmWindowTypeDock, m_dockMode);
+	// FIXME: Qt5 does not handle WA_X11NetWmWindowTypeDock yet, so set it manually.
+	//setAttribute(Qt::WA_X11NetWmWindowTypeDock, m_dockMode);
+	X11Support::setWindowPropertyAtom(winId(), "_NET_WM_WINDOW_TYPE", "_NET_WM_WINDOW_TYPE_DOCK");
 
 	if(!m_dockMode)
 	{
@@ -135,7 +137,7 @@ void PanelWindow::setDockMode(bool dockMode)
 	}
 
 	// When in dock mode, panel should appear on all desktops.
-	unsigned long desktop = m_dockMode ? 0xFFFFFFFF : 0;
+	uint32_t desktop = m_dockMode ? 0xFFFFFFFF : 0;
 	X11Support::setWindowPropertyCardinal(winId(), "_NET_WM_DESKTOP", desktop);
 
 	updateLayout();
@@ -220,7 +222,7 @@ void PanelWindow::updatePosition()
 	// Update reserved space.
 	if(m_dockMode)
 	{
-		QVector<unsigned long> values; // Values for setting _NET_WM_STRUT_PARTIAL property.
+		QVector<uint32_t> values; // Values for setting _NET_WM_STRUT_PARTIAL property.
 		values.fill(0, 12);
 		switch(m_horizontalAnchor)
 		{
@@ -258,7 +260,7 @@ void PanelWindow::updatePosition()
 	}
 
 	// Update "blur behind" hint.
-	QVector<unsigned long> values;
+	QVector<uint32_t> values;
 	values.resize(4);
 	values[0] = 0;
 	values[1] = 0;

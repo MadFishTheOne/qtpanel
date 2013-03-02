@@ -1,11 +1,15 @@
 #ifndef DOCKAPPLET_H
 #define DOCKAPPLET_H
 
+#include <stdint.h>
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtGui/QIcon>
 #include <QtWidgets/QGraphicsItem>
 #include "applet.h"
+
+typedef uint32_t xcb_window_t;
+typedef uint32_t xcb_atom_t;
 
 class QGraphicsPixmapItem;
 class TextGraphicsItem;
@@ -77,10 +81,10 @@ private:
 class Client
 {
 public:
-	Client(DockApplet* dockApplet, unsigned long handle);
+	Client(DockApplet* dockApplet, xcb_window_t handle);
 	~Client();
 
-	unsigned long handle() const
+	xcb_window_t handle() const
 	{
 		return m_handle;
 	}
@@ -105,7 +109,7 @@ public:
 		return m_isUrgent;
 	}
 
-	void windowPropertyChanged(unsigned long atom);
+	void windowPropertyChanged(xcb_atom_t atom);
 
 private:
 	void updateVisibility();
@@ -114,7 +118,7 @@ private:
 	void updateUrgency();
 
 	DockApplet* m_dockApplet;
-	unsigned long m_handle;
+	xcb_window_t m_handle;
 	QString m_name;
 	QIcon m_icon;
 	bool m_isUrgent;
@@ -139,7 +143,7 @@ public:
 
 	void updateLayout();
 
-	unsigned long activeWindow() const
+	xcb_window_t activeWindow() const
 	{
 		return m_activeWindow;
 	}
@@ -152,15 +156,15 @@ protected:
 	void layoutChanged();
 
 private slots:
-	void windowPropertyChanged(unsigned long window, unsigned long atom);
+	void windowPropertyChanged(xcb_window_t window, xcb_atom_t atom);
 
 private:
 	void updateClientList();
 	void updateActiveWindow();
 
-	QMap<unsigned long, Client*> m_clients;
+	QMap<xcb_window_t, Client*> m_clients;
 	QVector<DockItem*> m_dockItems;
-	unsigned long m_activeWindow;
+	xcb_window_t m_activeWindow;
 	bool m_dragging;
 };
 

@@ -1,12 +1,17 @@
 #ifndef X11SUPPORT_H
 #define X11SUPPORT_H
 
+#include <stdint.h>
 #include <QtCore/QVector>
 #include <QtCore/QMap>
 #include <QtCore/QObject>
 #include <QtCore/QAbstractNativeEventFilter>
 #include <QtGui/QIcon>
 #include <QtGui/QPixmap>
+
+typedef uint32_t xcb_window_t;
+typedef uint32_t xcb_atom_t;
+typedef uint32_t xcb_visualid_t;
 
 struct xcb_connection_t;
 
@@ -22,58 +27,60 @@ public:
 		return m_instance;
 	}
 
-	static unsigned long rootWindow();
-	static unsigned long atom(const QString& name);
+	static xcb_connection_t* connection() { return m_instance->m_connection; }
+	static xcb_window_t rootWindow() { return m_instance->m_rootWindow; }
+	static xcb_atom_t atom(const QString& name);
 
-	static void removeWindowProperty(unsigned long window, const QString& name);
-	static void setWindowPropertyCardinalArray(unsigned long window, const QString& name, const QVector<unsigned long>& values);
-	static void setWindowPropertyCardinal(unsigned long window, const QString& name, unsigned long value);
-	static void setWindowPropertyVisualId(unsigned long window, const QString& name, unsigned long value);
-	static unsigned long getWindowPropertyCardinal(unsigned long window, const QString& name);
-	static unsigned long getWindowPropertyWindow(unsigned long window, const QString& name);
-	static QVector<unsigned long> getWindowPropertyWindowsArray(unsigned long window, const QString& name);
-	static QVector<unsigned long> getWindowPropertyAtomsArray(unsigned long window, const QString& name);
-	static QString getWindowPropertyUTF8String(unsigned long window, const QString& name);
-	static QString getWindowPropertyLatin1String(unsigned long window, const QString& name);
-	static QString getWindowName(unsigned long window);
-	static QIcon getWindowIcon(unsigned long window);
-	static bool getWindowUrgency(unsigned long window);
-	static void registerForWindowPropertyChanges(unsigned long window);
-	static void registerForTrayIconUpdates(unsigned long window);
-	static void activateWindow(unsigned long window);
-	static void minimizeWindow(unsigned long window);
-	static void closeWindow(unsigned long window);
-	static void destroyWindow(unsigned long window);
-	static void killClient(unsigned long window);
-	static bool makeSystemTray(unsigned long window);
+	static void removeWindowProperty(xcb_window_t window, const QString& name);
+	static void setWindowPropertyCardinalArray(xcb_window_t window, const QString& name, const QVector<uint32_t>& values);
+	static void setWindowPropertyCardinal(xcb_window_t window, const QString& name, uint32_t value);
+	static void setWindowPropertyAtom(xcb_window_t window, const QString& name, const QString& value);
+	static void setWindowPropertyVisualId(xcb_window_t window, const QString& name, xcb_visualid_t value);
+	static uint32_t getWindowPropertyCardinal(xcb_window_t window, const QString& name);
+	static uint32_t getWindowPropertyWindow(xcb_window_t window, const QString& name);
+	static QVector<xcb_window_t> getWindowPropertyWindowsArray(xcb_window_t window, const QString& name);
+	static QVector<xcb_atom_t> getWindowPropertyAtomsArray(xcb_window_t window, const QString& name);
+	static QString getWindowPropertyUTF8String(xcb_window_t window, const QString& name);
+	static QString getWindowPropertyLatin1String(xcb_window_t window, const QString& name);
+	static QString getWindowName(xcb_window_t window);
+	static QIcon getWindowIcon(xcb_window_t window);
+	static bool getWindowUrgency(xcb_window_t window);
+	static void registerForWindowPropertyChanges(xcb_window_t window);
+	static void registerForTrayIconUpdates(xcb_window_t window);
+	static void activateWindow(xcb_window_t window);
+	static void minimizeWindow(xcb_window_t window);
+	static void closeWindow(xcb_window_t window);
+	static void destroyWindow(xcb_window_t window);
+	static void killClient(xcb_window_t window);
+	static bool makeSystemTray(xcb_window_t window);
 	static void freeSystemTray();
-	static unsigned long getARGBVisualId();
-	static void redirectWindow(unsigned long window);
-	static void unredirectWindow(unsigned long window);
-	static QPixmap getWindowPixmap(unsigned long window);
-	static void resizeWindow(unsigned long window, int width, int height);
-	static void moveWindow(unsigned long window, int x, int y);
-	static void mapWindow(unsigned long window);
-	static void reparentWindow(unsigned long window, unsigned long parent);
-	static void setWindowBackgroundBlack(unsigned long window);
+	static xcb_visualid_t getARGBVisualId();
+	static void redirectWindow(xcb_window_t window);
+	static void unredirectWindow(xcb_window_t window);
+	static QPixmap getWindowPixmap(xcb_window_t window);
+	static void resizeWindow(xcb_window_t window, int width, int height);
+	static void moveWindow(xcb_window_t window, int x, int y);
+	static void mapWindow(xcb_window_t window);
+	static void reparentWindow(xcb_window_t window, xcb_window_t parent);
+	static void setWindowBackgroundBlack(xcb_window_t window);
 
 signals:
-	void windowClosed(unsigned long window);
-	void windowReconfigured(unsigned long window, int x, int y, int width, int height);
-	void windowDamaged(unsigned long window);
-	void windowPropertyChanged(unsigned long window, unsigned long atom);
-	void clientMessageReceived(unsigned long window, unsigned long atom, void* data);
+	void windowClosed(xcb_window_t window);
+	void windowReconfigured(xcb_window_t window, int x, int y, int width, int height);
+	void windowDamaged(xcb_window_t window);
+	void windowPropertyChanged(xcb_window_t window, xcb_atom_t atom);
+	void clientMessageReceived(xcb_window_t window, xcb_atom_t atom, void* data);
 
 private:
-	static unsigned long systemTrayAtom();
+	static xcb_atom_t systemTrayAtom();
 
 	virtual bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
 
 	static X11Support* m_instance;
 	xcb_connection_t* m_connection;
-	unsigned long m_rootWindow;
+	xcb_window_t m_rootWindow;
 	int m_damageEventBase;
-	QMap<QString, unsigned long> m_cachedAtoms;
+	QMap<QString, xcb_atom_t> m_cachedAtoms;
 };
 
 #endif
