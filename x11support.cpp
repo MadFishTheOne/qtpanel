@@ -181,7 +181,7 @@ QString X11Support::getWindowPropertyUTF8String(xcb_window_t window, const QStri
 	xcb_get_property_reply_t* reply = xcb_get_property_reply(connection(), cookie, NULL);
 	if(reply != NULL)
 	{
-		result = QString::fromUtf8(reinterpret_cast<const char*>(xcb_get_property_value(reply)));
+		result = QString::fromUtf8(reinterpret_cast<const char*>(xcb_get_property_value(reply)), xcb_get_property_value_length(reply));
 		free(reply);
 	}
 	return result;
@@ -194,7 +194,7 @@ QString X11Support::getWindowPropertyLatin1String(xcb_window_t window, const QSt
 	xcb_get_property_reply_t* reply = xcb_get_property_reply(connection(), cookie, NULL);
 	if(reply != NULL)
 	{
-		result = QString::fromUtf8(reinterpret_cast<const char*>(xcb_get_property_value(reply)));
+		result = QString::fromLatin1(reinterpret_cast<const char*>(xcb_get_property_value(reply)), xcb_get_property_value_length(reply));
 		free(reply);
 	}
 	return result;
