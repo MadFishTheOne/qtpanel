@@ -15,6 +15,7 @@
 #include "dockapplet.h"
 #include "trayapplet.h"
 #include "clockapplet.h"
+#include "batteryapplet.h"
 
 PanelWindowGraphicsItem::PanelWindowGraphicsItem(PanelWindow* panelWindow)
 	: m_panelWindow(panelWindow)
@@ -89,6 +90,7 @@ PanelWindow::PanelWindow()
 	m_applets.append(new DockApplet(this));
 	m_applets.append(new TrayApplet(this));
 	m_applets.append(new ClockApplet(this));
+	m_applets.append(new BatteryApplet(this));
 
 	resize(adjustHardcodedPixelSize(512), adjustHardcodedPixelSize(48));
 }

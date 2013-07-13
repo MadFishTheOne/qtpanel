@@ -12,6 +12,7 @@ set(qtpanel_HEADERS
 	iconloader.h
 	textgraphicsitem.h
 	animationutils.h
+	battery.h
 )
 set(qtpanel_MOC_HEADERS
 	x11support.h
@@ -25,6 +26,7 @@ set(qtpanel_MOC_HEADERS
 	applicationsmenuapplet.h
 	dockapplet.h
 	trayapplet.h
+	batteryapplet.h
 )
 set(qtpanel_SOURCES
 	dpisupport.cpp
@@ -42,6 +44,8 @@ set(qtpanel_SOURCES
 	applicationsmenuapplet.cpp
 	dockapplet.cpp
 	trayapplet.cpp
+	battery.cpp
+	batteryapplet.cpp
 )
 qt5_wrap_ui(qtpanel_UI_HEADERS ${qtpanel_UIS})
 qt5_wrap_cpp(qtpanel_MOC_OUTPUT ${qtpanel_MOC_HEADERS})
